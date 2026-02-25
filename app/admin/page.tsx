@@ -181,7 +181,25 @@ export default function AdminPage() {
   const [selected, setSelected] = useState<AdminBooking | null>(null);
   const [statusFilter, setStatusFilter] = useState<"all" | AdminBooking["status"]>("all");
 
-  // ── Auth ────────────────────────────────────────────────────────────────
+  // ── Derived values — must be declared BEFORE any early return ────────────
+  const confirmed  = MOCK_BOOKINGS.filter(b => b.status === "confirmed");
+  const pending    = MOCK_BOOKINGS.filter(b => b.status === "pending");
+  const revenue    = totalRevenue(MOCK_BOOKINGS);
+  const todayStr   = format(new Date(), "yyyy-MM-dd");
+  const todayCount = MOCK_BOOKINGS.filter(b => b.date === todayStr && b.status !== "cancelled").length;
+
+  const filtered = useMemo(() => {
+    return MOCK_BOOKINGS.filter(b => {
+      const matchStatus = statusFilter === "all" || b.status === statusFilter;
+      const q = search.toLowerCase();
+      const matchSearch = !q || b.playerName.toLowerCase().includes(q)
+        || b.teamName.toLowerCase().includes(q) || b.id.toLowerCase().includes(q)
+        || b.email.toLowerCase().includes(q);
+      return matchStatus && matchSearch;
+    }).sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+  }, [search, statusFilter]);
+
+  // ── Auth gate — early return AFTER all hooks ─────────────────────────────
   if (!authed) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4 bg-[#06080f]"
@@ -214,24 +232,6 @@ export default function AdminPage() {
       </div>
     );
   }
-
-  // ── Dashboard ────────────────────────────────────────────────────────────
-  const confirmed  = MOCK_BOOKINGS.filter(b => b.status === "confirmed");
-  const pending    = MOCK_BOOKINGS.filter(b => b.status === "pending");
-  const revenue    = totalRevenue(MOCK_BOOKINGS);
-  const todayStr   = format(new Date(), "yyyy-MM-dd");
-  const todayCount = MOCK_BOOKINGS.filter(b => b.date === todayStr && b.status !== "cancelled").length;
-
-  const filtered = useMemo(() => {
-    return MOCK_BOOKINGS.filter(b => {
-      const matchStatus = statusFilter === "all" || b.status === statusFilter;
-      const q = search.toLowerCase();
-      const matchSearch = !q || b.playerName.toLowerCase().includes(q)
-        || b.teamName.toLowerCase().includes(q) || b.id.toLowerCase().includes(q)
-        || b.email.toLowerCase().includes(q);
-      return matchStatus && matchSearch;
-    }).sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
-  }, [search, statusFilter]);
 
   return (
     <div className="min-h-screen bg-[#06080f]" style={{ backgroundImage: "radial-gradient(at 30% 0%, rgba(249,115,22,0.08) 0%, transparent 50%)" }}>
