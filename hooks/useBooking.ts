@@ -2,6 +2,8 @@
 import { useState, useCallback, useMemo } from "react";
 import type { BookingState, PitchType, TimeSlot, BookingDetails } from "@/types/booking";
 import { PITCHES, generateTimeSlots } from "@/lib/pitches";
+import { MOCK_BOOKINGS } from "@/lib/mockBookings";
+import { format } from "date-fns";
 
 const INITIAL_STATE: BookingState = {
   selectedDate: null,
@@ -33,7 +35,20 @@ export function useBooking() {
 
   const timeSlots = useMemo(() => {
     if (!state.selectedDate || !state.selectedPitch || !selectedPitchConfig) return [];
-    return generateTimeSlots(state.selectedDate, state.selectedPitch, selectedPitchConfig.price);
+    // Build the set of already-booked hours for this pitch+date from mock data.
+    // In production this would be a server fetch.
+    const dateStr = format(state.selectedDate, "yyyy-MM-dd");
+    const bookedHours = new Set(
+      MOCK_BOOKINGS
+        .filter(
+          (b) =>
+            b.pitchId === state.selectedPitch &&
+            b.date === dateStr &&
+            b.status !== "cancelled",
+        )
+        .map((b) => b.time),
+    );
+    return generateTimeSlots(state.selectedDate, state.selectedPitch, selectedPitchConfig.price, bookedHours);
   }, [state.selectedDate, state.selectedPitch, selectedPitchConfig]);
 
   const depositAmount = useMemo(() => {

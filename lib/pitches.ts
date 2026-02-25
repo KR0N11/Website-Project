@@ -47,26 +47,21 @@ function formatHour(h: string): string {
   return `${display}:00 ${ampm}`;
 }
 
-function isSlotAvailable(date: Date, hour: string, pitchId: string): boolean {
-  const h = parseInt(hour, 10);
-  // Knuth multiplicative hash — mixes inputs so no two hours share the
-  // same congruence class (fixes the systematic 13/20 unavailable pattern).
-  let n = (date.getFullYear() * 366 + date.getMonth() * 31 + date.getDate());
-  n = ((n * 2654435761) >>> 0);
-  n = ((n ^ (h * 40503))    >>> 0);
-  n = ((n ^ pitchId.charCodeAt(0)) >>> 0);
-  n ^= n >>> 16;
-  n  = ((n * 0x45d9f3b) >>> 0);
-  n ^= n >>> 16;
-  return (n % 5) !== 0; // ~80 % available, evenly distributed across all hours
-}
-
-export function generateTimeSlots(date: Date, pitchId: string, pricePerHour: number): TimeSlot[] {
+/**
+ * bookedHours: set of "HH:00" strings already booked for this pitch+date.
+ * A slot is unavailable ONLY if it has a real booking — no random hashing.
+ */
+export function generateTimeSlots(
+  date: Date,
+  pitchId: string,
+  pricePerHour: number,
+  bookedHours: Set<string> = new Set(),
+): TimeSlot[] {
   return SLOT_HOURS.map((h) => ({
     id: `${pitchId}-${h}`,
     time: h,
     label: formatHour(h),
-    available: isSlotAvailable(date, h, pitchId),
+    available: !bookedHours.has(h),
     price: pricePerHour,
   }));
 }
