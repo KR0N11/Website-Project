@@ -6,9 +6,9 @@ export const PITCHES: PitchConfig[] = [
     name: "Pitch Alpha",
     capacity: "5v5",
     surface: "Third-Gen Turf",
-    description: "Our most popular pitch. Fast, tight gameplay on premium 3G turf with high-lux LED flood lighting.",
-    price: 65,
-    image: "https://images.unsplash.com/photo-1518604666860-9ed391f76460?w=800&q=80",
+    description: "Our fastest pitch. Tight 5-a-side on premium 3G turf under 5000-lux LED floodlights. Perfect for quick sessions.",
+    price: 90,
+    image: "https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=800&q=80",
     features: ["LED Floodlit", "3G Turf", "Spectator Rail", "Locker Access"],
   },
   {
@@ -16,9 +16,9 @@ export const PITCHES: PitchConfig[] = [
     name: "Pitch Beta",
     capacity: "7v7",
     surface: "Fourth-Gen Turf",
-    description: "Mid-format pitch with FIFA-approved 4G surface. Perfect for competitive leagues and team training.",
-    price: 95,
-    image: "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?w=800&q=80",
+    description: "Mid-format pitch with FIFA-approved 4G surface. The go-to for competitive leagues and team training blocks.",
+    price: 130,
+    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80",
     features: ["FIFA Approved", "4G Turf", "Covered Stand", "Video Analysis"],
   },
   {
@@ -26,9 +26,9 @@ export const PITCHES: PitchConfig[] = [
     name: "Main Arena",
     capacity: "11v11",
     surface: "Hybrid Grass",
-    description: "Full-size indoor arena with hybrid natural/synthetic grass. Cinematic lighting rig and scoreboard.",
-    price: 180,
-    image: "https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=800&q=80",
+    description: "Full-size indoor arena with hybrid natural/synthetic turf. Cinematic LED rig, digital scoreboard, PA system.",
+    price: 250,
+    image: "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800&q=80",
     features: ["Hybrid Grass", "Scoreboard", "PA System", "Event Ready"],
   },
 ];
@@ -47,7 +47,6 @@ function formatHour(h: string): string {
   return `${display}:00 ${ampm}`;
 }
 
-// Deterministic pseudo-random availability seeded by date + hour + pitch
 function isSlotAvailable(date: Date, hour: string, pitchId: string): boolean {
   const seed =
     date.getFullYear() * 10000 +
@@ -55,7 +54,7 @@ function isSlotAvailable(date: Date, hour: string, pitchId: string): boolean {
     date.getDate() +
     parseInt(hour, 10) +
     pitchId.length;
-  return (seed % 7) !== 0; // ~85% available
+  return (seed % 7) !== 0;
 }
 
 export function generateTimeSlots(date: Date, pitchId: string, pricePerHour: number): TimeSlot[] {

@@ -77,8 +77,8 @@ export default function Booking() {
     return (
       <section ref={sectionRef} id="booking" className="py-32 px-6">
         <div className="max-w-lg mx-auto text-center glass-card p-14">
-          <div className="w-20 h-20 rounded-full bg-[#39ff14]/10 border border-[#39ff14]/30 flex items-center justify-center mx-auto mb-8">
-            <CheckCircle2 size={40} className="text-[#39ff14]" />
+          <div className="w-20 h-20 rounded-full bg-[#F97316]/10 border border-[#F97316]/30 flex items-center justify-center mx-auto mb-8">
+            <CheckCircle2 size={40} className="text-[#F97316]" />
           </div>
           <h2
             className="text-white text-5xl mb-4"
@@ -86,28 +86,28 @@ export default function Booking() {
           >
             BOOKING CONFIRMED
           </h2>
-          <p className="text-[#8888a0] mb-3">
+          <p className="text-[#6080b8] mb-3">
             Confirmation sent to <strong className="text-white">{details.email}</strong>
           </p>
           {selectedPitchConfig && state.selectedDate && state.selectedSlot && (
             <div className="glass-card p-5 mt-8 mb-8 text-left space-y-3">
               <div className="flex justify-between">
-                <span className="text-[#5a5a72] text-sm">Pitch</span>
+                <span className="text-[#3d5a90] text-sm">Pitch</span>
                 <span className="text-white text-sm">{selectedPitchConfig.name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#5a5a72] text-sm">Date</span>
+                <span className="text-[#3d5a90] text-sm">Date</span>
                 <span className="text-white text-sm">
                   {format(state.selectedDate, "EEE, dd MMM yyyy")}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#5a5a72] text-sm">Time</span>
+                <span className="text-[#3d5a90] text-sm">Time</span>
                 <span className="text-white text-sm">{state.selectedSlot.label}</span>
               </div>
               <div className="flex justify-between border-t border-white/10 pt-3">
-                <span className="text-[#5a5a72] text-sm">Deposit Paid</span>
-                <span className="text-[#39ff14] font-semibold">£{depositAmount}</span>
+                <span className="text-[#3d5a90] text-sm">Deposit Paid</span>
+                <span className="text-[#F97316] font-semibold">${depositAmount}</span>
               </div>
             </div>
           )}
@@ -125,9 +125,9 @@ export default function Booking() {
         {/* Section header */}
         <div className="booking-header text-center mb-16">
           <div className="flex items-center justify-center gap-4 mb-4">
-            <div className="w-8 h-px bg-[#39ff14]" />
+            <div className="w-8 h-px bg-[#F97316]" />
             <span className="section-label">Real-Time Availability</span>
-            <div className="w-8 h-px bg-[#39ff14]" />
+            <div className="w-8 h-px bg-[#F97316]" />
           </div>
           <h2
             className="text-white leading-none mb-4"
@@ -138,7 +138,7 @@ export default function Booking() {
           >
             BOOK YOUR PITCH
           </h2>
-          <p className="text-[#5a5a72] max-w-md mx-auto">
+          <p className="text-[#3d5a90] max-w-md mx-auto">
             Reserve your slot in under 2 minutes. 50% deposit secures your booking.
           </p>
         </div>
@@ -156,17 +156,17 @@ export default function Booking() {
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0 transition-all duration-300 ${
                         completed
-                          ? "bg-[#39ff14] text-[#07070e]"
+                          ? "bg-[#F97316] text-[#06080f]"
                           : active
-                          ? "border-2 border-[#39ff14] text-[#39ff14]"
-                          : "border border-white/20 text-[#5a5a72]"
+                          ? "border-2 border-[#F97316] text-[#F97316]"
+                          : "border border-white/20 text-[#3d5a90]"
                       }`}
                     >
                       {completed ? <CheckCircle2 size={16} /> : step}
                     </div>
                     <span
                       className={`text-xs uppercase tracking-widest hidden sm:block ${
-                        active ? "text-white" : "text-[#5a5a72]"
+                        active ? "text-white" : "text-[#3d5a90]"
                       }`}
                       style={{ fontFamily: "var(--font-mono)" }}
                     >
@@ -176,7 +176,7 @@ export default function Booking() {
                   {i < STEP_LABELS.length - 1 && (
                     <div
                       className={`flex-1 h-px mx-3 transition-all duration-500 ${
-                        completed ? "bg-[#39ff14]/50" : "bg-white/10"
+                        completed ? "bg-[#F97316]/50" : "bg-white/10"
                       }`}
                     />
                   )}
@@ -196,7 +196,7 @@ export default function Booking() {
                     onClick={() => selectPitch(pitch.id as PitchType)}
                     className={`glass-card p-0 overflow-hidden text-left transition-all duration-300 group ${
                       selected
-                        ? "border-[#39ff14]/50 shadow-[0_0_30px_rgba(57,255,20,0.15)]"
+                        ? "border-[#F97316]/50 shadow-[0_0_30px_rgba(249,115,22,0.15)]"
                         : "hover:border-white/20"
                     }`}
                   >
@@ -208,15 +208,15 @@ export default function Booking() {
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         loading="lazy"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#07070e] via-transparent to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#06080f] via-transparent to-transparent" />
                       {selected && (
-                        <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-[#39ff14] flex items-center justify-center">
-                          <CheckCircle2 size={14} className="text-[#07070e]" />
+                        <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-[#F97316] flex items-center justify-center">
+                          <CheckCircle2 size={14} className="text-[#06080f]" />
                         </div>
                       )}
                       <div className="absolute bottom-3 left-3">
                         <span
-                          className="text-[#39ff14] text-sm"
+                          className="text-[#F97316] text-sm"
                           style={{ fontFamily: "var(--font-mono)" }}
                         >
                           {pitch.capacity}
@@ -231,7 +231,7 @@ export default function Booking() {
                       >
                         {pitch.name}
                       </h3>
-                      <p className="text-[#5a5a72] text-sm mb-4 leading-relaxed">
+                      <p className="text-[#3d5a90] text-sm mb-4 leading-relaxed">
                         {pitch.description}
                       </p>
 
@@ -239,7 +239,7 @@ export default function Booking() {
                         {pitch.features.map((f) => (
                           <span
                             key={f}
-                            className="text-[#8888a0] text-xs px-2 py-0.5 rounded border border-white/10"
+                            className="text-[#6080b8] text-xs px-2 py-0.5 rounded border border-white/10"
                           >
                             {f}
                           </span>
@@ -248,12 +248,12 @@ export default function Booking() {
 
                       <div className="flex items-baseline justify-between">
                         <div>
-                          <span className="text-[#39ff14] text-2xl font-semibold">
-                            £{pitch.price}
+                          <span className="text-[#F97316] text-2xl font-semibold">
+                            ${pitch.price}
                           </span>
-                          <span className="text-[#5a5a72] text-sm"> / hour</span>
+                          <span className="text-[#3d5a90] text-sm"> / hour</span>
                         </div>
-                        <span className="text-[#5a5a72] text-xs">{pitch.surface}</span>
+                        <span className="text-[#3d5a90] text-xs">{pitch.surface}</span>
                       </div>
                     </div>
                   </button>
@@ -270,7 +270,7 @@ export default function Booking() {
               {/* Time slots */}
               <div className="glass-card p-6">
                 <div className="flex items-center gap-2 mb-6">
-                  <Clock size={16} className="text-[#39ff14]" />
+                  <Clock size={16} className="text-[#F97316]" />
                   <h3
                     className="text-white text-lg tracking-[0.06em]"
                     style={{ fontFamily: "var(--font-display)" }}
@@ -282,7 +282,7 @@ export default function Booking() {
                 </div>
 
                 {!state.selectedDate ? (
-                  <p className="text-[#5a5a72] text-sm text-center py-16">
+                  <p className="text-[#3d5a90] text-sm text-center py-16">
                     Pick a date on the calendar to see available slots
                   </p>
                 ) : (
@@ -296,17 +296,17 @@ export default function Booking() {
                           onClick={() => slot.available && selectSlot(slot)}
                           className={`px-4 py-3 rounded-lg text-sm transition-all duration-200 flex justify-between items-center ${
                             !slot.available
-                              ? "opacity-30 cursor-not-allowed text-[#5a5a72]"
+                              ? "opacity-30 cursor-not-allowed text-[#3d5a90]"
                               : isSelected
-                              ? "bg-[#39ff14] text-[#07070e] font-semibold shadow-[0_0_12px_rgba(57,255,20,0.35)]"
-                              : "border border-white/10 text-[#b8b8c3] hover:border-white/30 hover:text-white"
+                              ? "bg-[#F97316] text-[#06080f] font-semibold shadow-[0_0_12px_rgba(249,115,22,0.35)]"
+                              : "border border-white/10 text-[#90a8d8] hover:border-white/30 hover:text-white"
                           }`}
                         >
                           <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem" }}>
                             {slot.label}
                           </span>
-                          <span className={`text-xs ${isSelected ? "text-[#07070e]/70" : "text-[#5a5a72]"}`}>
-                            £{slot.price}
+                          <span className={`text-xs ${isSelected ? "text-[#06080f]/70" : "text-[#3d5a90]"}`}>
+                            ${slot.price}
                           </span>
                         </button>
                       );
@@ -317,15 +317,15 @@ export default function Booking() {
                 {/* Selected summary */}
                 {state.selectedSlot && (
                   <div className="mt-6 pt-5 border-t border-white/10 flex items-center justify-between">
-                    <span className="text-[#8888a0] text-sm">Selected</span>
+                    <span className="text-[#6080b8] text-sm">Selected</span>
                     <div className="text-right">
                       <div
-                        className="text-[#39ff14] text-lg"
+                        className="text-[#F97316] text-lg"
                         style={{ fontFamily: "var(--font-display)" }}
                       >
                         {state.selectedSlot.label}
                       </div>
-                      <div className="text-[#5a5a72] text-xs">£{state.selectedSlot.price} / hr</div>
+                      <div className="text-[#3d5a90] text-xs">${state.selectedSlot.price} / hr</div>
                     </div>
                   </div>
                 )}
@@ -337,7 +337,7 @@ export default function Booking() {
           {state.step === 3 && (
             <div className="glass-card p-8 max-w-xl mx-auto">
               <div className="flex items-center gap-2 mb-8">
-                <Users size={18} className="text-[#39ff14]" />
+                <Users size={18} className="text-[#F97316]" />
                 <h3
                   className="text-white text-xl tracking-[0.06em]"
                   style={{ fontFamily: "var(--font-display)" }}
@@ -356,12 +356,12 @@ export default function Booking() {
                 ].map(({ field, label, type, placeholder }) => (
                   <div key={field}>
                     <label
-                      className="block text-[#8888a0] text-xs tracking-widest uppercase mb-2"
+                      className="block text-[#6080b8] text-xs tracking-widest uppercase mb-2"
                       style={{ fontFamily: "var(--font-mono)" }}
                     >
                       {label}
                       {["name", "email", "phone"].includes(field) && (
-                        <span className="text-[#39ff14] ml-1">*</span>
+                        <span className="text-[#F97316] ml-1">*</span>
                       )}
                     </label>
                     <input
@@ -371,7 +371,7 @@ export default function Booking() {
                       onChange={(e) =>
                         updateDetail(field as keyof typeof details, e.target.value)
                       }
-                      className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-white placeholder-[#3d3d55] focus:outline-none focus:border-[#39ff14]/50 focus:bg-white/[0.06] transition-all text-sm"
+                      className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-white placeholder-[#2a3f6a] focus:outline-none focus:border-[#F97316]/50 focus:bg-white/[0.06] transition-all text-sm"
                     />
                   </div>
                 ))}
@@ -398,17 +398,17 @@ export default function Booking() {
                     { label: "Player", value: details.name },
                   ].map(({ label, value }) => (
                     <div key={label} className="flex justify-between">
-                      <span className="text-[#5a5a72]">{label}</span>
+                      <span className="text-[#3d5a90]">{label}</span>
                       <span className="text-white">{value}</span>
                     </div>
                   ))}
                   <div className="pt-4 mt-4 border-t border-white/10 flex justify-between items-baseline">
-                    <span className="text-[#8888a0]">Full Price</span>
-                    <span className="text-white">£{selectedPitchConfig?.price ?? 0}</span>
+                    <span className="text-[#6080b8]">Full Price</span>
+                    <span className="text-white">${selectedPitchConfig?.price ?? 0}</span>
                   </div>
                   <div className="flex justify-between items-baseline">
-                    <span className="text-[#39ff14] font-medium">Deposit Due (50%)</span>
-                    <span className="text-[#39ff14] text-xl font-semibold">£{depositAmount}</span>
+                    <span className="text-[#F97316] font-medium">Deposit Due (50%)</span>
+                    <span className="text-[#F97316] text-xl font-semibold">${depositAmount}</span>
                   </div>
                 </div>
               </div>
@@ -416,14 +416,14 @@ export default function Booking() {
               {/* Stripe mockup */}
               <div className="glass-card p-6">
                 <div className="flex items-center gap-2 mb-5">
-                  <CreditCard size={18} className="text-[#39ff14]" />
+                  <CreditCard size={18} className="text-[#F97316]" />
                   <h3
                     className="text-white text-xl tracking-[0.06em]"
                     style={{ fontFamily: "var(--font-display)" }}
                   >
                     PAYMENT
                   </h3>
-                  <div className="ml-auto flex items-center gap-1 text-[#5a5a72] text-xs">
+                  <div className="ml-auto flex items-center gap-1 text-[#3d5a90] text-xs">
                     <Lock size={11} />
                     <span>SSL Secured</span>
                   </div>
@@ -433,7 +433,7 @@ export default function Booking() {
                 <div className="space-y-4">
                   <div>
                     <label className="section-label block mb-2">Card Number</label>
-                    <div className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-[#3d3d55] text-sm flex justify-between items-center">
+                    <div className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-[#2a3f6a] text-sm flex justify-between items-center">
                       <span>•••• •••• •••• ••••</span>
                       <div className="flex gap-1">
                         {["visa", "mc", "amex"].map((c) => (
@@ -448,29 +448,29 @@ export default function Booking() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="section-label block mb-2">Expiry</label>
-                      <div className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-[#3d3d55] text-sm">
+                      <div className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-[#2a3f6a] text-sm">
                         MM / YY
                       </div>
                     </div>
                     <div>
                       <label className="section-label block mb-2">CVC</label>
-                      <div className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-[#3d3d55] text-sm">
+                      <div className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-[#2a3f6a] text-sm">
                         •••
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <p className="text-[#3d3d55] text-xs mt-5 flex items-center gap-1">
-                  <Zap size={12} className="text-[#39ff14]/50" />
+                <p className="text-[#2a3f6a] text-xs mt-5 flex items-center gap-1">
+                  <Zap size={12} className="text-[#F97316]/50" />
                   Powered by Stripe. Card details are never stored on our servers.
                 </p>
               </div>
 
               {/* Ratings */}
-              <div className="flex items-center justify-center gap-1 text-[#39ff14]">
+              <div className="flex items-center justify-center gap-1 text-[#F97316]">
                 {[1,2,3,4,5].map((s) => <Star key={s} size={14} fill="#39ff14" />)}
-                <span className="text-[#8888a0] text-xs ml-2">
+                <span className="text-[#6080b8] text-xs ml-2">
                   Trusted by 2,400+ players
                 </span>
               </div>
@@ -485,7 +485,7 @@ export default function Booking() {
               className={`flex items-center gap-2 text-sm transition-all ${
                 state.step === 1
                   ? "opacity-0 pointer-events-none"
-                  : "text-[#8888a0] hover:text-white"
+                  : "text-[#6080b8] hover:text-white"
               }`}
             >
               <ChevronLeft size={16} />
@@ -522,7 +522,7 @@ export default function Booking() {
                 ) : (
                   <>
                     <Lock size={15} />
-                    Pay £{depositAmount} Deposit
+                    Pay ${depositAmount} Deposit
                   </>
                 )}
               </button>
