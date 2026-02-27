@@ -37,7 +37,7 @@ export default function Navbar() {
     <>
       <nav
         ref={navRef}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        className={`fixed top-4 left-0 right-0 z-50 transition-all duration-500 ${
           scrolled
             ? "bg-[#06080f]/90 backdrop-blur-xl border-b border-white/[0.06]"
             : "bg-gradient-to-b from-[#06080f]/70 to-transparent backdrop-blur-sm"
@@ -50,8 +50,8 @@ export default function Navbar() {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#F97316] to-[#EA580C] flex items-center justify-center shadow-[0_0_12px_rgba(249,115,22,0.4)]">
                 <Flame size={15} className="text-white fill-white" />
               </div>
-              <span className="text-white text-2xl tracking-[0.12em]" style={{ fontFamily: "var(--font-display)" }}>
-                MTL<span className="text-[#F97316]">WC</span>
+              <span className="text-white text-lg tracking-[0.08em]" style={{ fontFamily: "var(--font-display)" }}>
+                Montreal <span className="text-[#F97316]">World Cup</span>
               </span>
             </div>
 
