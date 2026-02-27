@@ -37,7 +37,7 @@ export default function Navbar() {
     <>
       <nav
         ref={navRef}
-        className={`fixed top-4 left-0 right-0 z-50 transition-all duration-500 ${
+        className={`fixed top-8 left-0 right-0 z-50 transition-all duration-500 ${
           scrolled
             ? "bg-[#06080f]/90 backdrop-blur-xl border-b border-white/[0.06]"
             : "bg-gradient-to-b from-[#06080f]/70 to-transparent backdrop-blur-sm"
