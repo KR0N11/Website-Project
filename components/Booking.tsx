@@ -20,7 +20,7 @@ import type { PitchType } from "@/types/booking";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const STEP_LABELS = ["Pitch", "Date & Time", "Details", "Payment"];
+const STEP_LABELS = ["Terrain", "Date & Heure", "Détails", "Paiement"];
 
 export default function Booking() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -84,15 +84,15 @@ export default function Booking() {
             className="text-white text-5xl mb-4"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            BOOKING CONFIRMED
+            RÉSERVATION CONFIRMÉE
           </h2>
           <p className="text-[#6080b8] mb-3">
-            Confirmation sent to <strong className="text-white">{details.email}</strong>
+            Confirmation envoyée à <strong className="text-white">{details.email}</strong>
           </p>
           {selectedPitchConfig && state.selectedDate && state.selectedSlot && (
             <div className="glass-card p-5 mt-8 mb-8 text-left space-y-3">
               <div className="flex justify-between">
-                <span className="text-[#3d5a90] text-sm">Pitch</span>
+                <span className="text-[#3d5a90] text-sm">Terrain</span>
                 <span className="text-white text-sm">{selectedPitchConfig.name}</span>
               </div>
               <div className="flex justify-between">
@@ -102,17 +102,17 @@ export default function Booking() {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#3d5a90] text-sm">Time</span>
+                <span className="text-[#3d5a90] text-sm">Heure</span>
                 <span className="text-white text-sm">{state.selectedSlot.label}</span>
               </div>
               <div className="flex justify-between border-t border-white/10 pt-3">
-                <span className="text-[#3d5a90] text-sm">Deposit Paid</span>
+                <span className="text-[#3d5a90] text-sm">Dépôt payé</span>
                 <span className="text-[#F97316] font-semibold">${depositAmount}</span>
               </div>
             </div>
           )}
           <button onClick={reset} className="btn-ghost w-full justify-center">
-            Book Another Pitch
+            Réserver un autre terrain
           </button>
         </div>
       </section>
@@ -126,7 +126,7 @@ export default function Booking() {
         <div className="booking-header text-center mb-16">
           <div className="flex items-center justify-center gap-4 mb-4">
             <div className="w-8 h-px bg-[#F97316]" />
-            <span className="section-label">Real-Time Availability</span>
+            <span className="section-label">Disponibilité en temps réel</span>
             <div className="w-8 h-px bg-[#F97316]" />
           </div>
           <h2
@@ -136,10 +136,10 @@ export default function Booking() {
               fontSize: "clamp(3rem, 8vw, 6rem)",
             }}
           >
-            BOOK YOUR PITCH
+            RÉSERVEZ VOTRE TERRAIN
           </h2>
           <p className="text-[#3d5a90] max-w-md mx-auto">
-            Reserve your slot in under 2 minutes. 50% deposit secures your booking.
+            Réservez votre créneau en moins de 2 minutes. Un dépôt de 50% confirme votre réservation.
           </p>
         </div>
 
@@ -277,13 +277,13 @@ export default function Booking() {
                   >
                     {state.selectedDate
                       ? format(state.selectedDate, "EEE, dd MMM").toUpperCase()
-                      : "SELECT A DATE"}
+                      : "CHOISIR UNE DATE"}
                   </h3>
                 </div>
 
                 {!state.selectedDate ? (
                   <p className="text-[#3d5a90] text-sm text-center py-16">
-                    Pick a date on the calendar to see available slots
+                    Choisissez une date sur le calendrier pour voir les créneaux disponibles
                   </p>
                 ) : (
                   <div className="grid grid-cols-2 gap-2 max-h-80 overflow-y-auto no-scrollbar pr-1">
@@ -342,17 +342,17 @@ export default function Booking() {
                   className="text-white text-xl tracking-[0.06em]"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
-                  YOUR DETAILS
+                  VOS INFORMATIONS
                 </h3>
               </div>
 
               <div className="space-y-5">
                 {[
-                  { field: "name",     label: "Full Name",    type: "text",  placeholder: "Alex Johnson"         },
-                  { field: "email",    label: "Email",        type: "email", placeholder: "alex@arena.fc"        },
-                  { field: "phone",    label: "Phone",        type: "tel",   placeholder: "+44 7700 000000"      },
-                  { field: "teamName", label: "Team Name",    type: "text",  placeholder: "FC Night Wolves"      },
-                  { field: "notes",    label: "Notes",        type: "text",  placeholder: "Any special requests" },
+                  { field: "name",     label: "Nom complet",   type: "text",  placeholder: "Alex Tremblay"              },
+                  { field: "email",    label: "Courriel",      type: "email", placeholder: "alex@arena.fc"             },
+                  { field: "phone",    label: "Téléphone",     type: "tel",   placeholder: "+1 514 555-0000"           },
+                  { field: "teamName", label: "Nom de l'équipe", type: "text", placeholder: "Les Loups FC"            },
+                  { field: "notes",    label: "Notes",         type: "text",  placeholder: "Demandes particulières..."  },
                 ].map(({ field, label, type, placeholder }) => (
                   <div key={field}>
                     <label
@@ -388,14 +388,14 @@ export default function Booking() {
                   className="text-white text-xl mb-5 tracking-[0.06em]"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
-                  BOOKING SUMMARY
+                  RÉCAPITULATIF
                 </h3>
                 <div className="space-y-3 text-sm">
                   {[
-                    { label: "Pitch",  value: selectedPitchConfig?.name ?? "—" },
-                    { label: "Date",   value: state.selectedDate ? format(state.selectedDate, "EEE, dd MMM yyyy") : "—" },
-                    { label: "Time",   value: state.selectedSlot?.label ?? "—" },
-                    { label: "Player", value: details.name },
+                    { label: "Terrain", value: selectedPitchConfig?.name ?? "—" },
+                    { label: "Date",    value: state.selectedDate ? format(state.selectedDate, "EEE, dd MMM yyyy") : "—" },
+                    { label: "Heure",   value: state.selectedSlot?.label ?? "—" },
+                    { label: "Joueur", value: details.name },
                   ].map(({ label, value }) => (
                     <div key={label} className="flex justify-between">
                       <span className="text-[#3d5a90]">{label}</span>
@@ -403,11 +403,11 @@ export default function Booking() {
                     </div>
                   ))}
                   <div className="pt-4 mt-4 border-t border-white/10 flex justify-between items-baseline">
-                    <span className="text-[#6080b8]">Full Price</span>
+                    <span className="text-[#6080b8]">Prix total</span>
                     <span className="text-white">${selectedPitchConfig?.price ?? 0}</span>
                   </div>
                   <div className="flex justify-between items-baseline">
-                    <span className="text-[#F97316] font-medium">Deposit Due (50%)</span>
+                    <span className="text-[#F97316] font-medium">Dépôt à payer (50%)</span>
                     <span className="text-[#F97316] text-xl font-semibold">${depositAmount}</span>
                   </div>
                 </div>
@@ -421,18 +421,18 @@ export default function Booking() {
                     className="text-white text-xl tracking-[0.06em]"
                     style={{ fontFamily: "var(--font-display)" }}
                   >
-                    PAYMENT
+                    PAIEMENT
                   </h3>
                   <div className="ml-auto flex items-center gap-1 text-[#3d5a90] text-xs">
                     <Lock size={11} />
-                    <span>SSL Secured</span>
+                    <span>Paiement sécurisé SSL</span>
                   </div>
                 </div>
 
                 {/* Card input mockup */}
                 <div className="space-y-4">
                   <div>
-                    <label className="section-label block mb-2">Card Number</label>
+                    <label className="section-label block mb-2">Numéro de carte</label>
                     <div className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-[#2a3f6a] text-sm flex justify-between items-center">
                       <span>•••• •••• •••• ••••</span>
                       <div className="flex gap-1">
@@ -447,7 +447,7 @@ export default function Booking() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="section-label block mb-2">Expiry</label>
+                      <label className="section-label block mb-2">Expiration</label>
                       <div className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-[#2a3f6a] text-sm">
                         MM / YY
                       </div>
@@ -463,7 +463,7 @@ export default function Booking() {
 
                 <p className="text-[#2a3f6a] text-xs mt-5 flex items-center gap-1">
                   <Zap size={12} className="text-[#F97316]/50" />
-                  Powered by Stripe. Card details are never stored on our servers.
+                  Propulsé par Stripe. Vos données bancaires ne sont jamais stockées sur nos serveurs.
                 </p>
               </div>
 
@@ -471,7 +471,7 @@ export default function Booking() {
               <div className="flex items-center justify-center gap-1 text-[#F97316]">
                 {[1,2,3,4,5].map((s) => <Star key={s} size={14} fill="#39ff14" />)}
                 <span className="text-[#6080b8] text-xs ml-2">
-                  Trusted by 2,400+ players
+                  Approuvé par 2 400+ joueurs
                 </span>
               </div>
             </div>
@@ -490,7 +490,7 @@ export default function Booking() {
             >
               <ChevronLeft size={16} />
               <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", letterSpacing: "0.1em" }}>
-                BACK
+                RETOUR
               </span>
             </button>
 
@@ -502,7 +502,7 @@ export default function Booking() {
                   canAdvance ? "btn-neon" : "opacity-40 cursor-not-allowed btn-neon"
                 }`}
               >
-                Continue
+                Continuer
                 <ChevronRight size={16} />
               </button>
             ) : (
@@ -517,12 +517,12 @@ export default function Booking() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                     </svg>
-                    Processing…
+                    Traitement en cours…
                   </span>
                 ) : (
                   <>
                     <Lock size={15} />
-                    Pay ${depositAmount} Deposit
+                    Payer ${depositAmount} de dépôt
                   </>
                 )}
               </button>

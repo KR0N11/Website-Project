@@ -60,7 +60,6 @@ export default function Hero() {
           style={{ backgroundImage: "url('https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1800&q=90')" }} />
         <div ref={overlayRef} className="absolute inset-0"
           style={{ background: "linear-gradient(135deg, rgba(6,8,15,0.95) 0%, rgba(6,8,15,0.78) 50%, rgba(6,8,15,0.92) 100%)" }} />
-        {/* Orange tint */}
         <div className="absolute inset-0 opacity-40"
           style={{ background: "radial-gradient(ellipse 70% 55% at 15% 65%, rgba(249,115,22,0.18) 0%, transparent 60%), radial-gradient(ellipse 50% 45% at 80% 15%, rgba(251,191,36,0.10) 0%, transparent 50%)" }} />
         <div className="absolute inset-0 pitch-grid opacity-50" />
@@ -80,14 +79,14 @@ export default function Hero() {
           {/* Eyebrow */}
           <div ref={eyebrowRef} className="flex items-center gap-4 mb-8">
             <div className="w-8 h-px bg-[#F97316]" />
-            <span className="section-label">Indoor Soccer Arena — Montréal, QC</span>
+            <span className="section-label">Terrain de soccer intérieur — Montréal, QC</span>
           </div>
 
           {/* Headline */}
           <div className="overflow-hidden mb-2">
             <div ref={line1Ref} className="text-white leading-[0.9] will-change-transform"
               style={{ fontFamily: "var(--font-display)", fontSize: "clamp(4rem, 14vw, 11rem)" }}>
-              WHERE
+              LÀ OÙ LES
             </div>
           </div>
           <div className="overflow-hidden mb-6">
@@ -97,29 +96,29 @@ export default function Hero() {
                 background: "linear-gradient(to right, #F97316, #FBBF24)",
                 WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
               }}>
-              LEGENDS PLAY
+              LÉGENDES JOUENT
             </div>
           </div>
 
           <p ref={subRef} className="text-[#90a8d8] text-lg md:text-xl max-w-lg mb-12 leading-relaxed font-light">
-            Montréal's premier indoor soccer facility. Premium turf, cinematic lighting,
-            instant CAD booking — votre jeu au niveau supérieur.
+            La meilleure installation de soccer intérieur à Montréal. Gazon premium,
+            éclairage cinématique, réservation instantanée en CAD — votre jeu au niveau supérieur.
           </p>
 
           <div ref={ctaRef} className="flex flex-wrap items-center gap-4 mb-16">
             <a href="#booking" className="btn-neon text-base">
-              Book a Pitch <ArrowRight size={18} />
+              Réserver un terrain <ArrowRight size={18} />
             </a>
             <button className="btn-ghost text-base group">
-              <Play size={16} />Watch Reel
+              <Play size={16} />Voir la vidéo
             </button>
           </div>
 
           <div ref={statsRef} className="flex flex-wrap gap-10">
             {[
-              { value: "3", label: "Premium Pitches" },
-              { value: "16", label: "Daily Time Slots" },
-              { value: "4.9★", label: "Player Rating" },
+              { value: "3",    label: "Terrains premium" },
+              { value: "16",   label: "Créneaux par jour" },
+              { value: "4.9★", label: "Note des joueurs" },
             ].map((s) => (
               <div key={s.label}>
                 <div className="text-white leading-none mb-1"
@@ -134,13 +133,13 @@ export default function Hero() {
 
         <div className="hidden xl:flex absolute right-10 top-1/2 -translate-y-1/2 items-center gap-3"
           style={{ writingMode: "vertical-rl" }}>
-          <span className="text-[#2a3f6a] text-xs tracking-[0.4em] uppercase">Scroll Down</span>
+          <span className="text-[#2a3f6a] text-xs tracking-[0.4em] uppercase">Défiler</span>
           <div className="w-px h-16 bg-gradient-to-b from-[#F97316]/50 to-transparent" />
         </div>
       </div>
 
       <div className="relative flex justify-center pb-8">
-        <a href="#facilities" aria-label="Scroll down">
+        <a href="#facilities" aria-label="Défiler vers le bas">
           <ChevronDown size={28} className="text-[#F97316] animate-bounce opacity-70" />
         </a>
       </div>

@@ -1,9 +1,9 @@
 import { Flame, Instagram, Twitter, Youtube, Mail, MapPin, Phone } from "lucide-react";
 
 const LINKS = {
-  Pitches:  ["5-a-Side Pitch", "7-a-Side Pitch", "Main Arena", "Pricing"],
-  Company:  ["About MTLWC", "Careers", "Press", "Blog"],
-  Support:  ["Book a Pitch", "FAQs", "Cancellations", "Contact"],
+  Terrains:  ["Terrain 5-à-côté", "Terrain 7-à-côté", "Arène Principale", "Tarifs"],
+  Compagnie: ["À propos de MTLWC", "Carrières", "Presse", "Blog"],
+  Support:   ["Réserver un terrain", "FAQ", "Annulations", "Contact"],
 };
 
 const SOCIAL = [
@@ -28,8 +28,8 @@ export default function Footer() {
               </span>
             </div>
             <p className="text-[#3d5a90] text-sm leading-relaxed max-w-xs mb-8">
-              Montréal's premier indoor soccer facility. Premium turf, cinematic
-              lighting, instant booking — votre jeu au niveau supérieur.
+              La meilleure installation de soccer intérieur à Montréal. Gazon premium,
+              éclairage cinématique, réservation instantanée — votre jeu au niveau supérieur.
             </p>
             <div className="space-y-3">
               {[
@@ -62,7 +62,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-16 pt-8 border-t border-white/[0.04] flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-[#2a3f6a] text-xs">© {new Date().getFullYear()} MTLWC Arena Inc. All rights reserved.</p>
+          <p className="text-[#2a3f6a] text-xs">© {new Date().getFullYear()} MTLWC Arena Inc. Tous droits réservés.</p>
           <div className="flex items-center gap-3">
             {SOCIAL.map(({ icon: Icon, label, href }) => (
               <a key={label} href={href} aria-label={label}
@@ -72,8 +72,8 @@ export default function Footer() {
             ))}
           </div>
           <div className="flex items-center gap-6">
-            <a href="#" className="text-[#2a3f6a] text-xs hover:text-[#3d5a90] transition-colors">Privacy Policy</a>
-            <a href="#" className="text-[#2a3f6a] text-xs hover:text-[#3d5a90] transition-colors">Terms of Service</a>
+            <a href="#" className="text-[#2a3f6a] text-xs hover:text-[#3d5a90] transition-colors">Politique de confidentialité</a>
+            <a href="#" className="text-[#2a3f6a] text-xs hover:text-[#3d5a90] transition-colors">Conditions d&apos;utilisation</a>
           </div>
         </div>
       </div>

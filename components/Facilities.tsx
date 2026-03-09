@@ -7,36 +7,36 @@ import { Zap, Shield, Camera, Wifi } from "lucide-react";
 gsap.registerPlugin(ScrollTrigger);
 
 const AMENITIES = [
-  { icon: Zap,    label: "LED Floodlighting",  desc: "5000-lux broadcast-grade LEDs on every pitch" },
-  { icon: Shield, label: "FIFA-Certified",      desc: "3G & 4G turf meets FIFA Quality Pro standards" },
-  { icon: Camera, label: "Video Analysis",      desc: "Record & replay every session via the app"     },
-  { icon: Wifi,   label: "Smart Booking App",   desc: "iOS & Android — instant confirmation"          },
+  { icon: Zap,    label: "Éclairage LED",         desc: "LEDs 5000 lux qualité diffusion sur chaque terrain" },
+  { icon: Shield, label: "Certifié FIFA",          desc: "Gazon 3G & 4G conforme aux normes FIFA Quality Pro" },
+  { icon: Camera, label: "Analyse vidéo",          desc: "Enregistrez et repassez chaque session via l'appli" },
+  { icon: Wifi,   label: "Réservation en ligne",   desc: "iOS & Android — confirmation instantanée"           },
 ];
 
 const GALLERY = [
   {
     src: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=900&q=85",
-    alt: "Players competing on indoor turf",
+    alt: "Joueurs en compétition sur gazon intérieur",
     span: "col-span-2 row-span-2",
-    label: "Game Night",
+    label: "Soirée de match",
   },
   {
     src: "https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=600&q=85",
-    alt: "Soccer ball on 3G turf",
+    alt: "Ballon sur gazon 3G",
     span: "col-span-1 row-span-1",
-    label: "Pitch Alpha",
+    label: "Terrain Alpha",
   },
   {
     src: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=85",
-    alt: "Indoor futsal action",
+    alt: "Action de futsal intérieur",
     span: "col-span-1 row-span-1",
-    label: "Pitch Beta",
+    label: "Terrain Bêta",
   },
   {
     src: "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=900&q=85",
-    alt: "Full-size indoor soccer arena",
+    alt: "Arène de soccer intérieur grandeur nature",
     span: "col-span-2 row-span-1",
-    label: "Main Arena",
+    label: "Arène Principale",
   },
 ];
 
@@ -69,20 +69,20 @@ export default function Facilities() {
           <div>
             <div className="flex items-center gap-4 mb-4">
               <div className="w-8 h-px bg-[#F97316]" />
-              <span className="section-label">World-Class Facilities</span>
+              <span className="section-label">Installations de classe mondiale</span>
             </div>
             <h2 className="text-white leading-none"
               style={{ fontFamily: "var(--font-display)", fontSize: "clamp(2.5rem, 7vw, 5.5rem)" }}>
-              THREE PITCHES.
+              TROIS TERRAINS.
               <br />
               <span style={{ background: "linear-gradient(to right, #F97316, #FBBF24)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-                ONE ARENA.
+                UNE ARÈNE.
               </span>
             </h2>
           </div>
           <p className="text-[#3d5a90] max-w-xs text-sm leading-relaxed md:text-right">
-            From intimate 5-a-side cages to a full-size indoor main arena —
-            every pitch built for peak performance in Montréal.
+            Des petits terrains 5-à-côté aux grandes arènes intérieures —
+            chaque surface conçue pour la performance à Montréal.
           </p>
         </div>
 

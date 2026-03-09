@@ -4,10 +4,10 @@ import { gsap } from "gsap";
 import { Menu, X, Flame } from "lucide-react";
 
 const NAV_LINKS = [
-  { label: "Pitches",  href: "#facilities" },
-  { label: "Book",     href: "#booking" },
-  { label: "Events",   href: "#events" },
-  { label: "About",    href: "#about" },
+  { label: "Terrains",  href: "#facilities" },
+  { label: "Réserver",  href: "#booking" },
+  { label: "FAQ",       href: "#faq" },
+  { label: "À propos",  href: "#about" },
 ];
 
 export default function Navbar() {
@@ -51,7 +51,7 @@ export default function Navbar() {
                 <Flame size={15} className="text-white fill-white" />
               </div>
               <span className="text-white text-lg tracking-[0.08em]" style={{ fontFamily: "var(--font-display)" }}>
-                Montreal <span className="text-[#F97316]">World Cup</span>
+                Montréal <span className="text-[#F97316]">World Cup</span>
               </span>
             </div>
 
@@ -71,11 +71,11 @@ export default function Navbar() {
 
             {/* CTA */}
             <div className="hidden md:flex items-center gap-4">
-              <a href="#booking" className="btn-neon text-sm py-3 px-6">Book Now</a>
+              <a href="#booking" className="btn-neon text-sm py-3 px-6">Réserver</a>
             </div>
 
             {/* Mobile toggle */}
-            <button className="md:hidden text-white p-2" onClick={() => setOpen((o) => !o)} aria-label="Toggle menu">
+            <button className="md:hidden text-white p-2" onClick={() => setOpen((o) => !o)} aria-label="Ouvrir le menu">
               {open ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
@@ -94,9 +94,9 @@ export default function Navbar() {
         ))}
         <a href="/admin" onClick={() => setOpen(false)}
           className="text-[#F97316]/60 text-2xl tracking-[0.1em] mt-2" style={{ fontFamily: "var(--font-display)" }}>
-          Admin Portal
+          Portail Admin
         </a>
-        <a href="#booking" onClick={() => setOpen(false)} className="btn-neon mt-4">Book Now</a>
+        <a href="#booking" onClick={() => setOpen(false)} className="btn-neon mt-4">Réserver</a>
       </div>
     </>
   );

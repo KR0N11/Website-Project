@@ -13,7 +13,8 @@ export type AdminBooking = {
   priceFull: number;
   depositPaid: number;
   status: "confirmed" | "pending" | "cancelled";
-  bookedAt: string;   // ISO timestamp
+  bookedAt: string;        // ISO timestamp
+  stripeSessionId?: string | null;
 };
 
 const NAMES = [

@@ -63,12 +63,12 @@ function BookingModal({ booking, onClose }: { booking: AdminBooking; onClose: ()
 
         <div className="space-y-3 mb-6">
           {[
-            { label: "Pitch",   value: booking.pitchName, style: { color: pc.text } },
-            { label: "Date",    value: formatDate(booking.date) },
-            { label: "Time",    value: booking.timeLabel },
-            { label: "Players", value: `${booking.players} players` },
-            { label: "Email",   value: booking.email },
-            { label: "Phone",   value: booking.phone },
+            { label: "Terrain",  value: booking.pitchName, style: { color: pc.text } },
+            { label: "Date",     value: formatDate(booking.date) },
+            { label: "Heure",    value: booking.timeLabel },
+            { label: "Joueurs",  value: `${booking.players} joueurs` },
+            { label: "Courriel", value: booking.email },
+            { label: "Téléphone",value: booking.phone },
           ].map(({ label, value, style }) => (
             <div key={label} className="flex justify-between py-2 border-b border-white/[0.05]">
               <span className="text-[#3d5a90] text-sm">{label}</span>
@@ -77,20 +77,33 @@ function BookingModal({ booking, onClose }: { booking: AdminBooking; onClose: ()
           ))}
         </div>
 
-        <div className="glass-card p-4 flex justify-between items-center">
+        <div className="glass-card p-4 flex justify-between items-center mb-4">
           <div>
-            <div className="text-[#3d5a90] text-xs mb-1">Full Price</div>
+            <div className="text-[#3d5a90] text-xs mb-1">Prix total</div>
             <div className="text-white font-semibold">${booking.priceFull} CAD</div>
           </div>
           <div className="text-right">
-            <div className="text-[#3d5a90] text-xs mb-1">Deposit Paid</div>
+            <div className="text-[#3d5a90] text-xs mb-1">Dépôt payé</div>
             <div className="text-[#F97316] font-semibold text-lg">${booking.depositPaid} CAD</div>
           </div>
           <div className="text-right">
-            <div className="text-[#3d5a90] text-xs mb-1">Balance Due</div>
+            <div className="text-[#3d5a90] text-xs mb-1">Solde restant</div>
             <div className="text-white font-semibold">${booking.priceFull - booking.depositPaid} CAD</div>
           </div>
         </div>
+
+        {booking.stripeSessionId && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg"
+            style={{ background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.2)" }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ color: "#818cf8", flexShrink: 0 }}>
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" fill="currentColor"/>
+            </svg>
+            <div className="min-w-0">
+              <div className="text-xs text-[#818cf8] mb-0.5">Stripe Session ID</div>
+              <div className="text-[#6080b8] text-xs font-mono truncate">{booking.stripeSessionId}</div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
