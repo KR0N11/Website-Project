@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Booking {
+  id              String   @id @default(cuid())
+  pitchId         String
+  pitchName       String
+  date            String
+  time            String
+  timeLabel       String
+  playerName      String
+  teamName        String
+  email           String
+  phone           String
+  players         Int
+  priceFull       Int
+  depositPaid     Int
+  status          String   @default("pending")
+  bookedAt        DateTime @default(now())
+  stripeSessionId String?
+}

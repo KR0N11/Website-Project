@@ -1,12 +1,12 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { format, addDays, parseISO } from "date-fns";
 import {
   LayoutGrid, List, DollarSign, CalendarDays, Users, TrendingUp,
   CheckCircle2, Clock, XCircle, ChevronLeft, ChevronRight,
-  Flame, LogOut, Search, Eye, X,
+  Flame, LogOut, Search, Eye, X, RefreshCw,
 } from "lucide-react";
-import { MOCK_BOOKINGS, type AdminBooking } from "@/lib/mockBookings";
+import type { AdminBooking } from "@/lib/mockBookings";
 
 // ── Simple PIN gate ─────────────────────────────────────────────────────────
 const ADMIN_PIN = "1234";
@@ -180,16 +180,40 @@ export default function AdminPage() {
   const [search, setSearch]     = useState("");
   const [selected, setSelected] = useState<AdminBooking | null>(null);
   const [statusFilter, setStatusFilter] = useState<"all" | AdminBooking["status"]>("all");
+  const [bookings, setBookings] = useState<AdminBooking[]>([]);
+  const [loading, setLoading]   = useState(false);
+
+  const fetchBookings = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/bookings");
+      if (res.ok) {
+        const data = await res.json();
+        setBookings(data.map((b: AdminBooking & { bookedAt: string }) => ({
+          ...b,
+          bookedAt: typeof b.bookedAt === "string" ? b.bookedAt : new Date(b.bookedAt).toISOString(),
+        })));
+      }
+    } catch (err) {
+      console.error("Failed to fetch bookings:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (authed) fetchBookings();
+  }, [authed, fetchBookings]);
 
   // ── Derived values — must be declared BEFORE any early return ────────────
-  const confirmed  = MOCK_BOOKINGS.filter(b => b.status === "confirmed");
-  const pending    = MOCK_BOOKINGS.filter(b => b.status === "pending");
-  const revenue    = totalRevenue(MOCK_BOOKINGS);
+  const confirmed  = bookings.filter(b => b.status === "confirmed");
+  const pending    = bookings.filter(b => b.status === "pending");
+  const revenue    = totalRevenue(bookings);
   const todayStr   = format(new Date(), "yyyy-MM-dd");
-  const todayCount = MOCK_BOOKINGS.filter(b => b.date === todayStr && b.status !== "cancelled").length;
+  const todayCount = bookings.filter(b => b.date === todayStr && b.status !== "cancelled").length;
 
   const filtered = useMemo(() => {
-    return MOCK_BOOKINGS.filter(b => {
+    return bookings.filter(b => {
       const matchStatus = statusFilter === "all" || b.status === statusFilter;
       const q = search.toLowerCase();
       const matchSearch = !q || b.playerName.toLowerCase().includes(q)
@@ -249,6 +273,11 @@ export default function AdminPage() {
           </div>
           <div className="flex items-center gap-4">
             <a href="/" className="text-[#3d5a90] hover:text-white text-sm transition-colors">← Public Site</a>
+            <button onClick={fetchBookings} disabled={loading}
+              className="flex items-center gap-1.5 text-[#3d5a90] hover:text-white text-sm transition-colors">
+              <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+              {loading ? "Loading…" : "Refresh"}
+            </button>
             <button onClick={() => setAuthed(false)}
               className="flex items-center gap-1.5 text-[#3d5a90] hover:text-white text-sm transition-colors">
               <LogOut size={14} /> Sign Out
@@ -326,7 +355,7 @@ export default function AdminPage() {
                   const d = addDays(new Date(), n);
                   const ds = format(d, "yyyy-MM-dd");
                   const active = ds === format(scheduleDate, "yyyy-MM-dd");
-                  const count = MOCK_BOOKINGS.filter(b => b.date === ds && b.status !== "cancelled").length;
+                  const count = bookings.filter(b => b.date === ds && b.status !== "cancelled").length;
                   return (
                     <button key={n} onClick={() => setScheduleDate(d)}
                       className={`shrink-0 px-3 py-1.5 rounded-lg text-xs transition-all ${
@@ -358,7 +387,7 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <ScheduleGrid date={scheduleDate} bookings={MOCK_BOOKINGS} onSelect={setSelected} />
+            <ScheduleGrid date={scheduleDate} bookings={bookings} onSelect={setSelected} />
           </div>
         )}
 
