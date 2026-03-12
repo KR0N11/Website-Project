@@ -1,15 +1,13 @@
-import { Flame, Instagram, Twitter, Youtube, Mail, MapPin, Phone } from "lucide-react";
+import { Instagram, Mail, MapPin, Phone } from "lucide-react";
 
 const LINKS = {
-  Pitches:  ["5-a-Side Pitch", "7-a-Side Pitch", "Main Arena", "Pricing"],
-  Company:  ["About MTLWC", "Careers", "Press", "Blog"],
-  Support:  ["Book a Pitch", "FAQs", "Cancellations", "Contact"],
+  Services: ["Location de terrain", "Tournois", "Ligues", "Événements privés"],
+  Forfaits: ["Tarifs horaires", "Pack Anniversaire", "Pack Corporate", "Pack Tournoi"],
+  Support:  ["Réserver", "FAQ", "Annulations", "Contact"],
 };
 
 const SOCIAL = [
   { icon: Instagram, label: "Instagram", href: "#" },
-  { icon: Twitter,   label: "Twitter/X",  href: "#" },
-  { icon: Youtube,   label: "YouTube",   href: "#" },
 ];
 
 export default function Footer() {
@@ -19,23 +17,20 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-12">
           {/* Brand */}
           <div className="col-span-2">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#F97316] to-[#EA580C] flex items-center justify-center shadow-[0_0_12px_rgba(249,115,22,0.35)]">
-                <Flame size={15} className="text-white fill-white" />
-              </div>
+            <div className="flex items-center gap-1 mb-6">
               <span className="text-white text-2xl tracking-[0.12em]" style={{ fontFamily: "var(--font-display)" }}>
-                MTL<span className="text-[#F97316]">WC</span>
+                MTLW<span className="text-[#F97316]">CUP</span>
               </span>
             </div>
             <p className="text-[#3d5a90] text-sm leading-relaxed max-w-xs mb-8">
-              Montréal's premier indoor soccer facility. Premium turf, cinematic
-              lighting, instant booking — votre jeu au niveau supérieur.
+              Terrain intérieur de soccer à Montréal. Tournois, ligues,
+              événements privés — réserve. joue. domine.
             </p>
             <div className="space-y-3">
               {[
-                { icon: MapPin, text: "4823 Rue Saint-Denis, Montréal, QC H2J 2L6" },
+                { icon: MapPin, text: "Montréal, QC" },
                 { icon: Phone,  text: "+1 (514) 555-0192" },
-                { icon: Mail,   text: "play@mtlwc.ca" },
+                { icon: Mail,   text: "info@mtlwcup.ca" },
               ].map(({ icon: Icon, text }) => (
                 <div key={text} className="flex items-start gap-3">
                   <Icon size={14} className="text-[#F97316] mt-0.5 shrink-0" />
@@ -62,7 +57,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-16 pt-8 border-t border-white/[0.04] flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-[#2a3f6a] text-xs">© {new Date().getFullYear()} MTLWC Arena Inc. All rights reserved.</p>
+          <p className="text-[#2a3f6a] text-xs">&copy; {new Date().getFullYear()} MTLWCUP. Tous droits réservés.</p>
           <div className="flex items-center gap-3">
             {SOCIAL.map(({ icon: Icon, label, href }) => (
               <a key={label} href={href} aria-label={label}
@@ -72,8 +67,8 @@ export default function Footer() {
             ))}
           </div>
           <div className="flex items-center gap-6">
-            <a href="#" className="text-[#2a3f6a] text-xs hover:text-[#3d5a90] transition-colors">Privacy Policy</a>
-            <a href="#" className="text-[#2a3f6a] text-xs hover:text-[#3d5a90] transition-colors">Terms of Service</a>
+            <a href="#" className="text-[#2a3f6a] text-xs hover:text-[#3d5a90] transition-colors">Politique de confidentialité</a>
+            <a href="#" className="text-[#2a3f6a] text-xs hover:text-[#3d5a90] transition-colors">Conditions d&apos;utilisation</a>
           </div>
         </div>
       </div>
