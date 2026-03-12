@@ -2,18 +2,16 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ArenaFC — London's Premier Indoor Soccer Facility",
+  title: "MTLWCUP — Terrain intérieur de soccer à Montréal",
   description:
-    "Book a 5-a-side, 7-a-side or full indoor pitch at ArenaFC, Hackney. State-of-the-art 3G & 4G turf, LED floodlights, instant online booking.",
-  keywords: ["indoor soccer", "5-a-side London", "book a pitch", "football arena", "indoor football"],
+    "Réservez un terrain intérieur de soccer à Montréal. Tournois, ligues compétitives, événements privés et espace FIFA PS5. Réservation en ligne 24/7.",
+  keywords: ["soccer intérieur", "terrain montréal", "réserver terrain", "futsal montréal", "MTLWCUP"],
   openGraph: {
     type:        "website",
-    locale:      "en_GB",
-    url:         "https://arenafc.co.uk",
-    siteName:    "ArenaFC",
-    title:       "ArenaFC — London's Premier Indoor Soccer Facility",
-    description: "Premium indoor football pitches in Hackney, London. Book online in 60 seconds.",
-    images: [{ url: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=1200&h=630&q=80" }],
+    locale:      "fr_CA",
+    siteName:    "MTLWCUP",
+    title:       "MTLWCUP — Terrain intérieur de soccer à Montréal",
+    description: "Terrain intérieur de 42 pieds. Tournois, ligues et événements privés. Réservez en ligne.",
   },
 };
 
@@ -27,7 +25,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="fr">
       <body>{children}</body>
     </html>
   );

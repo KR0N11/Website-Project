@@ -3,54 +3,48 @@ import type { PitchConfig, TimeSlot } from "@/types/booking";
 export const PITCHES: PitchConfig[] = [
   {
     id: "5-a-side",
-    name: "Pitch Alpha",
+    name: "Terrain 5v5",
     capacity: "5v5",
-    surface: "Third-Gen Turf",
-    description: "Our fastest pitch. Tight 5-a-side on premium 3G turf under 5000-lux LED floodlights. Perfect for quick sessions.",
-    price: 90,
+    surface: "Gazon synthétique 3G",
+    description: "Notre terrain rapide pour matchs 5 contre 5 sur gazon premium sous éclairage LED. Idéal pour sessions rapides.",
+    price: 80,
     image: "https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=800&q=80",
-    features: ["LED Floodlit", "3G Turf", "Spectator Rail", "Locker Access"],
+    features: ["LED", "Gazon 3G", "Vestiaires", "Spectateurs"],
   },
   {
     id: "7-a-side",
-    name: "Pitch Beta",
+    name: "Terrain 7v7",
     capacity: "7v7",
-    surface: "Fourth-Gen Turf",
-    description: "Mid-format pitch with FIFA-approved 4G surface. The go-to for competitive leagues and team training blocks.",
-    price: 130,
+    surface: "Gazon synthétique 4G",
+    description: "Terrain mi-format avec surface 4G approuvée FIFA. Pour ligues compétitives et entraînements d'équipe.",
+    price: 110,
     image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80",
-    features: ["FIFA Approved", "4G Turf", "Covered Stand", "Video Analysis"],
+    features: ["FIFA Approuvé", "Gazon 4G", "Tribune", "Analyse vidéo"],
   },
   {
     id: "full-pitch",
-    name: "Main Arena",
+    name: "Arena Principal",
     capacity: "11v11",
-    surface: "Hybrid Grass",
-    description: "Full-size indoor arena with hybrid natural/synthetic turf. Cinematic LED rig, digital scoreboard, PA system.",
-    price: 250,
+    surface: "Gazon hybride",
+    description: "Arena intérieur plein format avec gazon hybride. Éclairage LED, tableau d'affichage numérique, système audio.",
+    price: 140,
     image: "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800&q=80",
-    features: ["Hybrid Grass", "Scoreboard", "PA System", "Event Ready"],
+    features: ["Gazon hybride", "Tableau scores", "Système audio", "Événements"],
   },
 ];
 
 const SLOT_HOURS = [
-  "07:00", "08:00", "09:00", "10:00", "11:00", "12:00",
-  "13:00", "14:00", "15:00", "16:00", "17:00", "18:00",
-  "19:00", "20:00", "21:00", "22:00",
+  "08:00", "09:00", "10:00", "11:00", "12:00",
+  "13:00", "14:00", "15:00", "16:00", "17:00",
+  "18:00", "19:00", "20:00", "21:00", "22:00",
 ];
 
 function formatHour(h: string): string {
   const [hr] = h.split(":");
   const n = parseInt(hr, 10);
-  const ampm = n >= 12 ? "PM" : "AM";
-  const display = n > 12 ? n - 12 : n === 0 ? 12 : n;
-  return `${display}:00 ${ampm}`;
+  return `${n}h00`;
 }
 
-/**
- * bookedHours: set of "HH:00" strings already booked for this pitch+date.
- * A slot is unavailable ONLY if it has a real booking — no random hashing.
- */
 export function generateTimeSlots(
   date: Date,
   pitchId: string,

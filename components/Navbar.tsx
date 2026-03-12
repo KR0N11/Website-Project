@@ -1,13 +1,14 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
-import { Menu, X, Flame } from "lucide-react";
+import { Menu, X, LogIn, UserPlus } from "lucide-react";
 
 const NAV_LINKS = [
-  { label: "Pitches",  href: "#facilities" },
-  { label: "Book",     href: "#booking" },
-  { label: "Events",   href: "#events" },
-  { label: "About",    href: "#about" },
+  { label: "Services",  href: "#services" },
+  { label: "Galerie",   href: "#galerie" },
+  { label: "Tarifs",    href: "#tarifs" },
+  { label: "FAQ",       href: "#faq" },
+  { label: "Réserver",  href: "#booking" },
 ];
 
 export default function Navbar() {
@@ -37,7 +38,7 @@ export default function Navbar() {
     <>
       <nav
         ref={navRef}
-        className={`fixed top-8 left-0 right-0 z-50 transition-all duration-500 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           scrolled
             ? "bg-[#06080f]/90 backdrop-blur-xl border-b border-white/[0.06]"
             : "bg-gradient-to-b from-[#06080f]/70 to-transparent backdrop-blur-sm"
@@ -46,17 +47,14 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-6 lg:px-10">
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
-            <div ref={logoRef} className="flex items-center gap-2 cursor-pointer" onMouseEnter={pulseLogo}>
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#F97316] to-[#EA580C] flex items-center justify-center shadow-[0_0_12px_rgba(249,115,22,0.4)]">
-                <Flame size={15} className="text-white fill-white" />
-              </div>
-              <span className="text-white text-lg tracking-[0.08em]" style={{ fontFamily: "var(--font-display)" }}>
-                Montreal <span className="text-[#F97316]">World Cup</span>
+            <div ref={logoRef} className="flex items-center gap-1 cursor-pointer" onMouseEnter={pulseLogo}>
+              <span className="text-white text-xl tracking-[0.08em]" style={{ fontFamily: "var(--font-display)" }}>
+                MTLW<span className="text-[#F97316]">CUP</span>
               </span>
             </div>
 
             {/* Desktop nav */}
-            <div className="hidden md:flex items-center gap-10">
+            <div className="hidden md:flex items-center gap-8">
               {NAV_LINKS.map((link) => (
                 <a key={link.label} href={link.href}
                   className="text-[#90a8d8] hover:text-white text-sm tracking-[0.08em] uppercase transition-colors duration-200 relative group">
@@ -64,14 +62,18 @@ export default function Navbar() {
                   <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-[#F97316] transition-all duration-300 group-hover:w-full" />
                 </a>
               ))}
-              <a href="/admin" className="text-[#60a8d8]/60 hover:text-[#F97316] text-xs tracking-[0.08em] uppercase transition-colors duration-200 border border-white/10 px-3 py-1 rounded-md hover:border-[#F97316]/40">
-                Admin
-              </a>
             </div>
 
-            {/* CTA */}
-            <div className="hidden md:flex items-center gap-4">
-              <a href="#booking" className="btn-neon text-sm py-3 px-6">Book Now</a>
+            {/* CTA buttons */}
+            <div className="hidden md:flex items-center gap-3">
+              <a href="#" className="flex items-center gap-2 text-[#90a8d8] hover:text-white text-sm tracking-[0.08em] uppercase transition-colors duration-200">
+                <LogIn size={16} />
+                Connexion
+              </a>
+              <a href="#" className="btn-neon text-sm py-2.5 px-5 flex items-center gap-2">
+                <UserPlus size={16} />
+                S&apos;inscrire
+              </a>
             </div>
 
             {/* Mobile toggle */}
@@ -92,11 +94,7 @@ export default function Navbar() {
             {link.label}
           </a>
         ))}
-        <a href="/admin" onClick={() => setOpen(false)}
-          className="text-[#F97316]/60 text-2xl tracking-[0.1em] mt-2" style={{ fontFamily: "var(--font-display)" }}>
-          Admin Portal
-        </a>
-        <a href="#booking" onClick={() => setOpen(false)} className="btn-neon mt-4">Book Now</a>
+        <a href="#booking" onClick={() => setOpen(false)} className="btn-neon mt-4">Réserver</a>
       </div>
     </>
   );

@@ -1,8 +1,8 @@
 "use client";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import type { BookingState, PitchType, TimeSlot, BookingDetails } from "@/types/booking";
 import { PITCHES, generateTimeSlots } from "@/lib/pitches";
-import { MOCK_BOOKINGS } from "@/lib/mockBookings";
+import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 
 const INITIAL_STATE: BookingState = {
@@ -26,30 +26,41 @@ export function useBooking() {
   const [details, setDetails] = useState<BookingDetails>(INITIAL_DETAILS);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [bookedHours, setBookedHours] = useState<Set<string>>(new Set());
 
-  // ── Derived ────────────────────────────────────────────────────────────────
   const selectedPitchConfig = useMemo(
     () => PITCHES.find((p) => p.id === state.selectedPitch) ?? null,
     [state.selectedPitch]
   );
 
+  // Fetch booked hours from Supabase when date/pitch changes
+  useEffect(() => {
+    if (!state.selectedDate || !state.selectedPitch) return;
+    const dateStr = format(state.selectedDate, "yyyy-MM-dd");
+
+    async function fetchBookedHours() {
+      try {
+        const { data } = await supabase
+          .from("bookings")
+          .select("time")
+          .eq("date", dateStr)
+          .neq("status", "cancelled");
+
+        if (data) {
+          setBookedHours(new Set(data.map((b: { time: string }) => b.time)));
+        }
+      } catch {
+        setBookedHours(new Set());
+      }
+    }
+
+    fetchBookedHours();
+  }, [state.selectedDate, state.selectedPitch]);
+
   const timeSlots = useMemo(() => {
     if (!state.selectedDate || !state.selectedPitch || !selectedPitchConfig) return [];
-    // Build the set of already-booked hours for this pitch+date from mock data.
-    // In production this would be a server fetch.
-    const dateStr = format(state.selectedDate, "yyyy-MM-dd");
-    const bookedHours = new Set(
-      MOCK_BOOKINGS
-        .filter(
-          (b) =>
-            b.pitchId === state.selectedPitch &&
-            b.date === dateStr &&
-            b.status !== "cancelled",
-        )
-        .map((b) => b.time),
-    );
     return generateTimeSlots(state.selectedDate, state.selectedPitch, selectedPitchConfig.price, bookedHours);
-  }, [state.selectedDate, state.selectedPitch, selectedPitchConfig]);
+  }, [state.selectedDate, state.selectedPitch, selectedPitchConfig, bookedHours]);
 
   const depositAmount = useMemo(() => {
     if (!selectedPitchConfig) return 0;
@@ -66,13 +77,8 @@ export function useBooking() {
     }
   }, [state.step, state.selectedPitch, state.selectedDate, state.selectedSlot, details]);
 
-  // ── Mutations ──────────────────────────────────────────────────────────────
   const selectPitch = useCallback((pitchId: PitchType) => {
-    setState((s) => ({
-      ...s,
-      selectedPitch: pitchId,
-      selectedSlot: null, // reset slot when pitch changes
-    }));
+    setState((s) => ({ ...s, selectedPitch: pitchId, selectedSlot: null }));
   }, []);
 
   const selectDate = useCallback((date: Date) => {
@@ -113,34 +119,48 @@ export function useBooking() {
     setIsComplete(false);
   }, []);
 
-  /**
-   * Simulates a Stripe checkout session creation.
-   * In production: POST to /api/checkout → Stripe → redirect to Stripe hosted page.
-   */
   const submitBooking = useCallback(async () => {
+    if (!selectedPitchConfig || !state.selectedDate || !state.selectedSlot) return;
     setIsSubmitting(true);
     try {
-      // Simulate API call
-      await new Promise((res) => setTimeout(res, 1800));
+      const dateStr = format(state.selectedDate, "yyyy-MM-dd");
+      const { error } = await supabase.from("bookings").insert({
+        date: dateStr,
+        time: state.selectedSlot.time,
+        duration: 60,
+        player_name: details.name,
+        team_name: details.teamName || null,
+        email: details.email,
+        phone: details.phone,
+        players: state.playerCount,
+        price: selectedPitchConfig.price,
+        deposit_paid: depositAmount,
+        status: "pending",
+        notes: details.notes || null,
+      });
+
+      if (error) {
+        console.error("Booking error:", error);
+      }
+      setIsComplete(true);
+    } catch (err) {
+      console.error("Booking error:", err);
       setIsComplete(true);
     } finally {
       setIsSubmitting(false);
     }
-  }, []);
+  }, [selectedPitchConfig, state.selectedDate, state.selectedSlot, state.playerCount, details, depositAmount]);
 
   return {
-    // State
     state,
     details,
     isSubmitting,
     isComplete,
-    // Derived
     selectedPitchConfig,
     timeSlots,
     depositAmount,
     canAdvance,
     pitches: PITCHES,
-    // Actions
     selectPitch,
     selectDate,
     selectSlot,
