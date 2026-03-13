@@ -28,18 +28,21 @@ export default function Pricing() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.from(".pricing-header > *", {
-        opacity: 0, y: 40, duration: 0.8, stagger: 0.12, ease: "expo.out",
-        scrollTrigger: { trigger: ".pricing-header", start: "top 80%" },
-      });
-      gsap.from(".pricing-table", {
-        opacity: 0, y: 50, duration: 0.8, ease: "expo.out",
-        scrollTrigger: { trigger: ".pricing-table", start: "top 85%" },
-      });
-      gsap.from(".pack-card", {
-        opacity: 0, y: 40, duration: 0.7, stagger: 0.12, ease: "expo.out",
-        scrollTrigger: { trigger: ".pack-card", start: "top 90%" },
-      });
+      gsap.fromTo(".pricing-header > *",
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, duration: 0.8, stagger: 0.12, ease: "expo.out",
+          scrollTrigger: { trigger: ".pricing-header", start: "top 80%", toggleActions: "play none none none" } }
+      );
+      gsap.fromTo(".pricing-table",
+        { opacity: 0, y: 50 },
+        { opacity: 1, y: 0, duration: 0.8, ease: "expo.out",
+          scrollTrigger: { trigger: ".pricing-table", start: "top 85%", toggleActions: "play none none none" } }
+      );
+      gsap.fromTo(".pack-card",
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, duration: 0.7, stagger: 0.12, ease: "expo.out",
+          scrollTrigger: { trigger: sectionRef.current, start: "top 90%", toggleActions: "play none none none" } }
+      );
     }, sectionRef);
     return () => ctx.revert();
   }, []);
