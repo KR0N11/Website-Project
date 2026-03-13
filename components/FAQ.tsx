@@ -19,12 +19,12 @@ const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: 
 };
 
 const FALLBACK_FAQ: FaqRow[] = [
-  { id: "1", question: "Quels sont les horaires d'ouverture ?", answer: "Le terrain est disponible du lundi au dimanche, de 8h à 23h.", icon: "clock", sort_order: 1 },
-  { id: "2", question: "Quels modes de paiement acceptez-vous ?", answer: "Nous acceptons Visa, Mastercard et Interac.", icon: "credit-card", sort_order: 2 },
-  { id: "3", question: "Quelle est votre politique d'annulation ?", answer: "Plus de 48h : remboursement complet. Entre 24h-48h : crédit. Moins de 24h : aucun remboursement.", icon: "alert-triangle", sort_order: 3 },
-  { id: "4", question: "Combien de joueurs peuvent jouer ?", answer: "Idéal pour 5v5 ou 6v6. Capacité totale de 30 personnes.", icon: "users", sort_order: 4 },
-  { id: "5", question: "Fournissez-vous l'équipement ?", answer: "Ballons, dossards et buts fournis. Apportez vos chaussures d'intérieur.", icon: "shield-check", sort_order: 5 },
-  { id: "6", question: "Peut-on réserver pour un événement privé ?", answer: "Oui ! Packs Anniversaire, Corporate et Tournoi disponibles.", icon: "help-circle", sort_order: 6 },
+  { id: "1", question: "Quels sont vos horaires d'ouverture ?", answer: "Nous sommes ouverts 7 jours sur 7, de 8h à 23h. Réservation en ligne disponible 24h/24.", icon: "clock", sort_order: 1 },
+  { id: "2", question: "Quels modes de paiement acceptez-vous ?", answer: "Paiement sécurisé par Stripe : Visa, Mastercard, American Express et Apple Pay. Un dépôt est requis à la réservation.", icon: "credit-card", sort_order: 2 },
+  { id: "3", question: "Quelle est votre politique d'annulation ?", answer: "Annulation gratuite jusqu'à 48h avant le créneau. Entre 24h et 48h : crédit applicable sur une future réservation. Moins de 24h : aucun remboursement.", icon: "alert-triangle", sort_order: 3 },
+  { id: "4", question: "Combien de joueurs par équipe ?", answer: "Le format idéal est 5 contre 5 ou 6 contre 6. Capacité maximale de 30 personnes incluant les spectateurs.", icon: "users", sort_order: 4 },
+  { id: "5", question: "L'équipement est-il fourni ?", answer: "Oui ! Ballons, dossards et filets sont inclus. Apportez vos chaussures d'intérieur à semelles non marquantes.", icon: "shield-check", sort_order: 5 },
+  { id: "6", question: "Proposez-vous des forfaits événements ?", answer: "Absolument ! Nous offrons le Pack Fête (anniversaires), le Pack Entreprise (team building) et le Pack Tournoi (compétitions privées). Consultez la section Tarifs pour les détails.", icon: "help-circle", sort_order: 6 },
 ];
 
 export default function FAQ() {
@@ -63,10 +63,13 @@ export default function FAQ() {
       <div className="max-w-3xl mx-auto">
         {/* Title */}
         <div className="faq-title text-center mb-16">
-          <span className="section-label block mb-4">Questions fréquentes</span>
+          <span className="section-label block mb-4">Besoin d&apos;aide ?</span>
           <h2 className="text-white leading-none"
             style={{ fontFamily: "var(--font-display)", fontSize: "clamp(3rem, 8vw, 5rem)" }}>
-            FAQ
+            Questions{" "}
+            <span style={{ background: "linear-gradient(to right, #F97316, #FBBF24)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+              fréquentes
+            </span>
           </h2>
         </div>
 

@@ -8,27 +8,27 @@ gsap.registerPlugin(ScrollTrigger);
 const GALLERY = [
   {
     src: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=900&q=85",
-    alt: "Match en cours sur terrain intérieur",
+    alt: "Match de soccer intérieur en soirée à Montréal",
     span: "col-span-2 row-span-2",
-    label: "Soirée Match",
+    label: "Match en direct",
   },
   {
     src: "https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=600&q=85",
-    alt: "Ballon de soccer sur gazon synthétique",
+    alt: "Gazon synthétique professionnel du terrain MTLWCUP",
     span: "col-span-1 row-span-1",
-    label: "Terrain",
+    label: "Gazon pro",
   },
   {
     src: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&q=85",
-    alt: "Action de futsal intérieur",
+    alt: "Action de futsal lors d'un tournoi MTLWCUP",
     span: "col-span-1 row-span-1",
-    label: "Tournoi",
+    label: "Tournoi 5v5",
   },
   {
     src: "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=900&q=85",
-    alt: "Arena de soccer intérieur",
+    alt: "Vue panoramique de l'aréna intérieur MTLWCUP",
     span: "col-span-2 row-span-1",
-    label: "Arena",
+    label: "Notre aréna",
   },
 ];
 
@@ -54,10 +54,13 @@ export default function Facilities() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="facilities-header text-center mb-16">
-          <span className="section-label block mb-4">Notre espace</span>
+          <span className="section-label block mb-4">Découvrez nos installations</span>
           <h2 className="text-white leading-none"
             style={{ fontFamily: "var(--font-display)", fontSize: "clamp(3rem, 8vw, 6rem)" }}>
-            Galerie
+            Notre{" "}
+            <span style={{ background: "linear-gradient(to right, #F97316, #FBBF24)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+              espace
+            </span>
           </h2>
         </div>
 
