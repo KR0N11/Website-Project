@@ -11,10 +11,11 @@ export default function Stats() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.from(".cta-block > *", {
-        opacity: 0, y: 40, duration: 0.8, stagger: 0.12, ease: "expo.out",
-        scrollTrigger: { trigger: ".cta-block", start: "top 80%" },
-      });
+      gsap.fromTo(".cta-block > *",
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, duration: 0.8, stagger: 0.12, ease: "expo.out",
+          scrollTrigger: { trigger: ".cta-block", start: "top 80%", toggleActions: "play none none none" } }
+      );
     }, sectionRef);
     return () => ctx.revert();
   }, []);
