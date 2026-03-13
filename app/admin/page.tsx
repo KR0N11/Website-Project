@@ -28,6 +28,16 @@ type AdminBooking = {
 
 const ADMIN_PIN = "1234";
 
+const DEMO_BOOKINGS: AdminBooking[] = [
+  { id: "a1b2c3d4-1111", date: format(new Date(), "yyyy-MM-dd"), time: "09:00", duration: 60, player_name: "Alexandre Tremblay", team_name: "FC Montréal", email: "alex@email.com", phone: "+1 514 555 0101", players: 10, price: 190, deposit_paid: 95, status: "confirmed", notes: null, created_at: new Date().toISOString() },
+  { id: "b2c3d4e5-2222", date: format(new Date(), "yyyy-MM-dd"), time: "14:00", duration: 60, player_name: "Sophie Lavoie", team_name: "Les Étoiles", email: "sophie@email.com", phone: "+1 514 555 0202", players: 14, price: 260, deposit_paid: 130, status: "confirmed", notes: "Tournoi amical", created_at: new Date().toISOString() },
+  { id: "c3d4e5f6-3333", date: format(new Date(), "yyyy-MM-dd"), time: "18:00", duration: 90, player_name: "Marc-André Dubois", team_name: null, email: "marc@email.com", phone: "+1 438 555 0303", players: 10, price: 190, deposit_paid: 95, status: "pending", notes: null, created_at: new Date().toISOString() },
+  { id: "d4e5f6g7-4444", date: format(addDays(new Date(), 1), "yyyy-MM-dd"), time: "10:00", duration: 60, player_name: "Émilie Gagnon", team_name: "Équipe Corporate Bell", email: "emilie@bell.ca", phone: "+1 514 555 0404", players: 22, price: 320, deposit_paid: 160, status: "confirmed", notes: "Team building", created_at: new Date().toISOString() },
+  { id: "e5f6g7h8-5555", date: format(addDays(new Date(), 1), "yyyy-MM-dd"), time: "19:00", duration: 60, player_name: "Karim Benzarti", team_name: "FC Villeray", email: "karim@email.com", phone: "+1 438 555 0505", players: 10, price: 190, deposit_paid: 95, status: "confirmed", notes: null, created_at: new Date().toISOString() },
+  { id: "f6g7h8i9-6666", date: format(addDays(new Date(), 2), "yyyy-MM-dd"), time: "11:00", duration: 60, player_name: "Jade Côté", team_name: "Ligue Féminine MTL", email: "jade@email.com", phone: "+1 514 555 0606", players: 14, price: 260, deposit_paid: 130, status: "pending", notes: null, created_at: new Date().toISOString() },
+  { id: "g7h8i9j0-7777", date: format(addDays(new Date(), -1), "yyyy-MM-dd"), time: "20:00", duration: 60, player_name: "Philippe Roy", team_name: null, email: "phil@email.com", phone: "+1 438 555 0707", players: 10, price: 190, deposit_paid: 0, status: "cancelled", notes: "Annulé par le client", created_at: new Date().toISOString() },
+];
+
 const STATUS_STYLES: Record<string, { bg: string; text: string; icon: typeof CheckCircle2 }> = {
   confirmed: { bg: "rgba(34,197,94,0.12)",  text: "#4ade80", icon: CheckCircle2 },
   pending:   { bg: "rgba(251,191,36,0.12)", text: "#FBBF24", icon: Clock       },
@@ -164,7 +174,7 @@ export default function AdminPage() {
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
   const [loading, setLoading]   = useState(true);
 
-  // Fetch bookings from Supabase
+  // Fetch bookings from Supabase, fall back to demo data
   useEffect(() => {
     if (!authed) return;
     async function fetchBookings() {
@@ -175,9 +185,9 @@ export default function AdminPage() {
           .select("*")
           .order("date")
           .order("time");
-        if (data) setBookings(data as AdminBooking[]);
+        setBookings(data?.length ? (data as AdminBooking[]) : DEMO_BOOKINGS);
       } catch {
-        // Keep empty
+        setBookings(DEMO_BOOKINGS);
       } finally {
         setLoading(false);
       }

@@ -37,13 +37,14 @@ export default function Facilities() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.from(".facilities-header > *", {
-        opacity: 0, y: 40, duration: 0.8, stagger: 0.12, ease: "expo.out",
-        scrollTrigger: { trigger: ".facilities-header", start: "top 80%" },
-      });
+      gsap.fromTo(".facilities-header > *",
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, duration: 0.8, stagger: 0.12, ease: "expo.out",
+          scrollTrigger: { trigger: ".facilities-header", start: "top 80%", toggleActions: "play none none none" } }
+      );
       gsap.utils.toArray<HTMLElement>(".gallery-item").forEach((el, i) => {
-        gsap.from(el, { opacity: 0, y: 60, duration: 0.8, delay: i * 0.08, ease: "expo.out",
-          scrollTrigger: { trigger: el, start: "top 85%" } });
+        gsap.fromTo(el, { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: 0.8, delay: i * 0.08, ease: "expo.out",
+          scrollTrigger: { trigger: el, start: "top 85%", toggleActions: "play none none none" } });
       });
     }, sectionRef);
     return () => ctx.revert();

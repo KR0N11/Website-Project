@@ -47,14 +47,16 @@ export default function Booking() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.from(".booking-header", {
-        opacity: 0, y: 50, duration: 0.8, ease: "expo.out",
-        scrollTrigger: { trigger: sectionRef.current, start: "top 80%" },
-      });
-      gsap.from(".booking-panel", {
-        opacity: 0, y: 60, duration: 0.9, ease: "expo.out", delay: 0.15,
-        scrollTrigger: { trigger: sectionRef.current, start: "top 80%" },
-      });
+      gsap.fromTo(".booking-header",
+        { opacity: 0, y: 50 },
+        { opacity: 1, y: 0, duration: 0.8, ease: "expo.out",
+          scrollTrigger: { trigger: sectionRef.current, start: "top 80%", toggleActions: "play none none none" } }
+      );
+      gsap.fromTo(".booking-panel",
+        { opacity: 0, y: 60 },
+        { opacity: 1, y: 0, duration: 0.9, ease: "expo.out", delay: 0.15,
+          scrollTrigger: { trigger: sectionRef.current, start: "top 80%", toggleActions: "play none none none" } }
+      );
     }, sectionRef);
     return () => ctx.revert();
   }, []);
