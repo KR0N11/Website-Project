@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
-import { Menu, X, LogIn, UserPlus } from "lucide-react";
+import { Menu, X, LogIn, UserPlus, ShieldCheck } from "lucide-react";
 
 const NAV_LINKS = [
   { label: "Services",  href: "#services" },
@@ -45,7 +45,7 @@ export default function Navbar() {
         }`}
       >
         <div className="max-w-7xl mx-auto px-6 lg:px-10">
-          <div className="flex items-center justify-between h-20">
+          <div className="flex items-center justify-between h-24">
             {/* Logo */}
             <div ref={logoRef} className="flex items-center gap-1 cursor-pointer" onMouseEnter={pulseLogo}>
               <span className="text-white text-xl tracking-[0.08em]" style={{ fontFamily: "var(--font-display)" }}>
@@ -66,6 +66,10 @@ export default function Navbar() {
 
             {/* CTA buttons */}
             <div className="hidden md:flex items-center gap-3">
+              <a href="/admin" className="flex items-center gap-2 text-[#F97316] hover:text-[#FBBF24] text-sm tracking-[0.08em] uppercase transition-colors duration-200">
+                <ShieldCheck size={16} />
+                Admin
+              </a>
               <a href="#" className="flex items-center gap-2 text-[#90a8d8] hover:text-white text-sm tracking-[0.08em] uppercase transition-colors duration-200">
                 <LogIn size={16} />
                 Connexion
@@ -95,6 +99,9 @@ export default function Navbar() {
           </a>
         ))}
         <a href="#booking" onClick={() => setOpen(false)} className="btn-neon mt-4">Réserver</a>
+        <a href="/admin" onClick={() => setOpen(false)} className="flex items-center gap-2 text-[#F97316] text-lg mt-4 tracking-[0.1em] uppercase">
+          <ShieldCheck size={20} /> Admin
+        </a>
       </div>
     </>
   );

@@ -59,7 +59,7 @@ export default function Hero() {
       </div>
 
       {/* Main content */}
-      <div className="relative flex-1 flex items-center justify-center text-center max-w-7xl mx-auto w-full px-6 lg:px-10 pt-32 pb-24">
+      <div className="relative flex-1 flex items-center justify-center text-center max-w-7xl mx-auto w-full px-6 lg:px-10 pt-40 pb-24">
         <div className="w-full max-w-4xl">
           {/* Eyebrow */}
           <div ref={eyebrowRef} className="mb-6">

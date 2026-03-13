@@ -63,14 +63,18 @@ export default function FAQ() {
       <div className="max-w-3xl mx-auto">
         {/* Title */}
         <div className="faq-title text-center mb-16">
-          <span className="section-label block mb-4">Besoin d&apos;aide ?</span>
+          <span className="section-label block mb-4">Questions fréquentes</span>
           <h2 className="text-white leading-none"
             style={{ fontFamily: "var(--font-display)", fontSize: "clamp(3rem, 8vw, 5rem)" }}>
-            Questions{" "}
+            Besoin d&apos;{" "}
             <span style={{ background: "linear-gradient(to right, #F97316, #FBBF24)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-              fréquentes
+              aide
             </span>
+            {" "}?
           </h2>
+          <p className="text-[#6080b8] mt-4 max-w-lg mx-auto">
+            Tout ce que vous devez savoir avant de réserver votre terrain.
+          </p>
         </div>
 
         {/* Accordion */}
