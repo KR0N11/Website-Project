@@ -73,6 +73,7 @@ export default function Services() {
       <div className="max-w-7xl mx-auto">
         {/* Title */}
         <div className="services-title text-center mb-16">
+          <span className="section-label block mb-4">Nos services</span>
           <h2 className="text-white leading-none"
             style={{ fontFamily: "var(--font-display)", fontSize: "clamp(3rem, 8vw, 6rem)" }}>
             Tout pour{" "}

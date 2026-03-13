@@ -21,7 +21,7 @@ import type { PitchType } from "@/types/booking";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const STEP_LABELS = ["Terrain", "Date & Heure", "Détails", "Paiement"];
+const STEP_LABELS = ["Formule", "Date & Heure", "Détails", "Paiement"];
 
 export default function Booking() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -113,10 +113,13 @@ export default function Booking() {
           </div>
           <h2 className="text-white leading-none mb-4"
             style={{ fontFamily: "var(--font-display)", fontSize: "clamp(3rem, 8vw, 6rem)" }}>
-            Réserver un terrain
+            Choisissez votre{" "}
+            <span style={{ background: "linear-gradient(to right, #F97316, #FBBF24)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+              formule
+            </span>
           </h2>
           <p className="text-[#3d5a90] max-w-md mx-auto">
-            Réservez votre créneau en moins de 2 minutes. Dépôt de 50% pour confirmer.
+            Sélectionnez votre terrain, choisissez votre créneau et réservez en moins de 2 minutes. Dépôt de 50% requis.
           </p>
         </div>
 
@@ -317,11 +320,11 @@ export default function Booking() {
                 <div className="flex items-center gap-2 mb-5">
                   <CreditCard size={18} className="text-[#F97316]" />
                   <h3 className="text-white text-xl tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
-                    PAIEMENT
+                    PAIEMENT SÉCURISÉ
                   </h3>
                   <div className="ml-auto flex items-center gap-1 text-[#3d5a90] text-xs">
                     <Lock size={11} />
-                    <span>SSL Sécurisé</span>
+                    <span>Chiffré SSL 256-bit</span>
                   </div>
                 </div>
                 <div className="space-y-4">
@@ -329,10 +332,11 @@ export default function Booking() {
                     <label className="section-label block mb-2">Numéro de carte</label>
                     <div className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-[#2a3f6a] text-sm flex justify-between items-center">
                       <span>&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull;</span>
-                      <div className="flex gap-1">
-                        {["visa", "mc", "interac"].map((c) => (
-                          <div key={c} className="w-8 h-5 rounded bg-white/10 border border-white/10" />
-                        ))}
+                      <div className="flex gap-2 items-center">
+                        <span className="text-[#3d5a90] text-[0.6rem] tracking-wider uppercase">Visa</span>
+                        <span className="text-[#3d5a90] text-[0.6rem] tracking-wider uppercase">MC</span>
+                        <span className="text-[#3d5a90] text-[0.6rem] tracking-wider uppercase">Amex</span>
+                        <span className="text-[#3d5a90] text-[0.6rem] tracking-wider uppercase">Apple Pay</span>
                       </div>
                     </div>
                   </div>
@@ -349,13 +353,13 @@ export default function Booking() {
                 </div>
                 <p className="text-[#2a3f6a] text-xs mt-5 flex items-center gap-1">
                   <Zap size={12} className="text-[#F97316]/50" />
-                  Propulsé par Stripe. Vos informations de carte ne sont jamais stockées sur nos serveurs.
+                  Propulsé par Stripe. Visa, Mastercard, Amex et Apple Pay acceptés. Vos données ne sont jamais stockées sur nos serveurs.
                 </p>
               </div>
 
               <div className="flex items-center justify-center gap-1 text-[#F97316]">
                 {[1,2,3,4,5].map((s) => <Star key={s} size={14} fill="#F97316" />)}
-                <span className="text-[#6080b8] text-xs ml-2">Confiance de centaines de joueurs</span>
+                <span className="text-[#6080b8] text-xs ml-2">Plus de 500 réservations confirmées</span>
               </div>
             </div>
           )}
