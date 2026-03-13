@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ChevronDown, Clock, CreditCard, AlertTriangle, Users, ShieldCheck, HelpCircle } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -31,18 +30,6 @@ export default function FAQ() {
   const sectionRef = useRef<HTMLElement>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [faqItems, setFaqItems] = useState<FaqRow[]>(FALLBACK_FAQ);
-
-  useEffect(() => {
-    async function fetchFaq() {
-      try {
-        const { data } = await supabase.from("faq").select("*").order("sort_order");
-        if (data?.length) setFaqItems(data as FaqRow[]);
-      } catch {
-        // Use fallback data
-      }
-    }
-    fetchFaq();
-  }, []);
 
   useEffect(() => {
     const ctx = gsap.context(() => {

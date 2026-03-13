@@ -3,8 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Check } from "lucide-react";
-import { supabase } from "@/lib/supabase";
-
 gsap.registerPlugin(ScrollTrigger);
 
 type PricingRow = { id: string; duration: number; regular: number; peak: number; weekend: number };
@@ -27,22 +25,6 @@ export default function Pricing() {
   const sectionRef = useRef<HTMLElement>(null);
   const [pricing, setPricing] = useState<PricingRow[]>(FALLBACK_PRICING);
   const [packages, setPackages] = useState<PackageRow[]>(FALLBACK_PACKAGES);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [pricingRes, packagesRes] = await Promise.all([
-          supabase.from("pricing").select("*").order("duration"),
-          supabase.from("packages").select("*").order("sort_order"),
-        ]);
-        if (pricingRes.data?.length) setPricing(pricingRes.data as PricingRow[]);
-        if (packagesRes.data?.length) setPackages(packagesRes.data as PackageRow[]);
-      } catch {
-        // Use fallback data
-      }
-    }
-    fetchData();
-  }, []);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
