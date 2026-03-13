@@ -11,16 +11,16 @@ type PricingRow = { id: string; duration: number; regular: number; peak: number;
 type PackageRow = { id: string; name: string; features: string[]; is_popular: boolean; sort_order: number };
 
 const FALLBACK_PRICING: PricingRow[] = [
-  { id: "1", duration: 30,  regular: 50,  peak: 50,  weekend: 50  },
-  { id: "2", duration: 60,  regular: 80,  peak: 100, weekend: 110 },
-  { id: "3", duration: 90,  regular: 110, peak: 135, weekend: 150 },
-  { id: "4", duration: 120, regular: 140, peak: 170, weekend: 185 },
+  { id: "1", duration: 30,  regular: 55,  peak: 65,  weekend: 70  },
+  { id: "2", duration: 60,  regular: 95,  peak: 115, weekend: 125 },
+  { id: "3", duration: 90,  regular: 130, peak: 155, weekend: 170 },
+  { id: "4", duration: 120, regular: 160, peak: 190, weekend: 210 },
 ];
 
 const FALLBACK_PACKAGES: PackageRow[] = [
-  { id: "1", name: "Pack Anniversaire", features: ["90 min terrain", "60 min espace relaxe", "PS5 FIFA incluse", "Boissons incluses"], is_popular: false, sort_order: 1 },
-  { id: "2", name: "Pack Corporate",    features: ["2h terrain", "Arbitre professionnel", "Espace détente", "Facturation entreprise"], is_popular: true, sort_order: 2 },
-  { id: "3", name: "Pack Tournoi Privé", features: ["Bloc multi-heures", "Organisation bracket", "Arbitrage complet", "Récompenses"], is_popular: false, sort_order: 3 },
+  { id: "1", name: "Pack Fête", features: ["90 min de jeu sur terrain", "Salle privée avec collations", "Console PS5 & FIFA incluse", "Breuvages et gâteau offerts"], is_popular: false, sort_order: 1 },
+  { id: "2", name: "Pack Entreprise", features: ["2h de terrain réservé", "Arbitre certifié inclus", "Salon VIP & vestiaires privés", "Facturation corporative disponible"], is_popular: true, sort_order: 2 },
+  { id: "3", name: "Pack Tournoi", features: ["Créneaux multi-terrains flexibles", "Gestion complète des tableaux", "Arbitrage professionnel", "Trophées et prix remis sur place"], is_popular: false, sort_order: 3 },
 ];
 
 export default function Pricing() {
@@ -67,16 +67,16 @@ export default function Pricing() {
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="pricing-header text-center mb-16">
-          <span className="section-label block mb-4">Tarifs &amp; Forfaits</span>
+          <span className="section-label block mb-4">Nos tarifs</span>
           <h2 className="text-white leading-none"
             style={{ fontFamily: "var(--font-display)", fontSize: "clamp(3rem, 8vw, 6rem)" }}>
-            Des forfaits{" "}
+            Jouez à{" "}
             <span style={{ background: "linear-gradient(to right, #F97316, #FBBF24)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-              sur mesure
+              votre rythme
             </span>
           </h2>
           <p className="text-[#6080b8] mt-4 max-w-lg mx-auto">
-            Location à l&apos;heure ou forfaits événements complets. Paiement en ligne sécurisé.
+            Réservation à l&apos;heure ou forfaits tout inclus pour vos événements. Paiement sécurisé par Stripe.
           </p>
         </div>
 
@@ -109,7 +109,7 @@ export default function Pricing() {
             </tbody>
           </table>
           <p className="text-[#3d5a90] text-xs text-center py-4 border-t border-white/[0.05]">
-            * Les prix sont à titre indicatif et peuvent varier. Taxes en sus (TPS/TVQ).
+            * Prix en dollars canadiens. Taxes en sus (TPS/TVQ). Tarifs sujets à changement sans préavis.
           </p>
         </div>
 
