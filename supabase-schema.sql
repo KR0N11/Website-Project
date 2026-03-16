@@ -67,6 +67,9 @@ CREATE TABLE bookings (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- NOTE: The 'notes' column stores pack info and duration info as part of the text.
+-- Example: "Pack: Pack Entreprise | Durée: 2h | Special requests here"
+
 -- Enable Row Level Security
 ALTER TABLE pricing ENABLE ROW LEVEL SECURITY;
 ALTER TABLE packages ENABLE ROW LEVEL SECURITY;

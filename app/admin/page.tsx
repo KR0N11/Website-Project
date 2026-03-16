@@ -28,16 +28,6 @@ type AdminBooking = {
 
 const ADMIN_PIN = "1234";
 
-const DEMO_BOOKINGS: AdminBooking[] = [
-  { id: "a1b2c3d4-1111", date: format(new Date(), "yyyy-MM-dd"), time: "09:00", duration: 60, player_name: "Alexandre Tremblay", team_name: "FC Montréal", email: "alex@email.com", phone: "+1 514 555 0101", players: 10, price: 190, deposit_paid: 95, status: "confirmed", notes: null, created_at: new Date().toISOString() },
-  { id: "b2c3d4e5-2222", date: format(new Date(), "yyyy-MM-dd"), time: "14:00", duration: 60, player_name: "Sophie Lavoie", team_name: "Les Étoiles", email: "sophie@email.com", phone: "+1 514 555 0202", players: 14, price: 260, deposit_paid: 130, status: "confirmed", notes: "Tournoi amical", created_at: new Date().toISOString() },
-  { id: "c3d4e5f6-3333", date: format(new Date(), "yyyy-MM-dd"), time: "18:00", duration: 90, player_name: "Marc-André Dubois", team_name: null, email: "marc@email.com", phone: "+1 438 555 0303", players: 10, price: 190, deposit_paid: 95, status: "pending", notes: null, created_at: new Date().toISOString() },
-  { id: "d4e5f6g7-4444", date: format(addDays(new Date(), 1), "yyyy-MM-dd"), time: "10:00", duration: 60, player_name: "Émilie Gagnon", team_name: "Équipe Corporate Bell", email: "emilie@bell.ca", phone: "+1 514 555 0404", players: 22, price: 320, deposit_paid: 160, status: "confirmed", notes: "Team building", created_at: new Date().toISOString() },
-  { id: "e5f6g7h8-5555", date: format(addDays(new Date(), 1), "yyyy-MM-dd"), time: "19:00", duration: 60, player_name: "Karim Benzarti", team_name: "FC Villeray", email: "karim@email.com", phone: "+1 438 555 0505", players: 10, price: 190, deposit_paid: 95, status: "confirmed", notes: null, created_at: new Date().toISOString() },
-  { id: "f6g7h8i9-6666", date: format(addDays(new Date(), 2), "yyyy-MM-dd"), time: "11:00", duration: 60, player_name: "Jade Côté", team_name: "Ligue Féminine MTL", email: "jade@email.com", phone: "+1 514 555 0606", players: 14, price: 260, deposit_paid: 130, status: "pending", notes: null, created_at: new Date().toISOString() },
-  { id: "g7h8i9j0-7777", date: format(addDays(new Date(), -1), "yyyy-MM-dd"), time: "20:00", duration: 60, player_name: "Philippe Roy", team_name: null, email: "phil@email.com", phone: "+1 438 555 0707", players: 10, price: 190, deposit_paid: 0, status: "cancelled", notes: "Annulé par le client", created_at: new Date().toISOString() },
-];
-
 const STATUS_STYLES: Record<string, { bg: string; text: string; icon: typeof CheckCircle2 }> = {
   confirmed: { bg: "rgba(34,197,94,0.12)",  text: "#4ade80", icon: CheckCircle2 },
   pending:   { bg: "rgba(251,191,36,0.12)", text: "#FBBF24", icon: Clock       },
@@ -174,20 +164,26 @@ export default function AdminPage() {
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
   const [loading, setLoading]   = useState(true);
 
-  // Fetch bookings from Supabase, fall back to demo data
+  // Fetch bookings from Supabase (real data only)
   useEffect(() => {
     if (!authed) return;
     async function fetchBookings() {
       setLoading(true);
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("bookings")
           .select("*")
           .order("date")
           .order("time");
-        setBookings(data?.length ? (data as AdminBooking[]) : DEMO_BOOKINGS);
-      } catch {
-        setBookings(DEMO_BOOKINGS);
+        if (error) {
+          console.error("Supabase fetch error:", error);
+          setBookings([]);
+        } else {
+          setBookings((data as AdminBooking[]) ?? []);
+        }
+      } catch (err) {
+        console.error("Fetch bookings error:", err);
+        setBookings([]);
       } finally {
         setLoading(false);
       }
@@ -238,7 +234,7 @@ export default function AdminPage() {
           </div>
           <button onClick={() => { if (pin === ADMIN_PIN) setAuthed(true); else setPinError(true); }}
             className="btn-neon w-full justify-center">Déverrouiller</button>
-          <p className="text-[#2a3f6a] text-xs mt-6">NIP démo : 1234</p>
+          <p className="text-[#2a3f6a] text-xs mt-6">Accès administrateur uniquement</p>
         </div>
       </div>
     );
@@ -267,6 +263,16 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto px-6 py-10">
         {loading ? (
           <div className="text-center py-20 text-[#6080b8]">Chargement des réservations...</div>
+        ) : bookings.length === 0 && !search ? (
+          <div className="text-center py-20">
+            <div className="w-16 h-16 rounded-full bg-[#F97316]/10 border border-[#F97316]/20 flex items-center justify-center mx-auto mb-6">
+              <CalendarDays size={28} className="text-[#F97316]/50" />
+            </div>
+            <h3 className="text-white text-2xl mb-2" style={{ fontFamily: "var(--font-display)" }}>Aucune réservation</h3>
+            <p className="text-[#3d5a90] text-sm max-w-md mx-auto">
+              Les réservations apparaîtront ici une fois que des clients auront soumis leurs demandes. Assurez-vous que Supabase est configuré dans votre fichier .env.local.
+            </p>
+          </div>
         ) : (
           <>
             {/* KPI cards */}

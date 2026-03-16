@@ -8,10 +8,10 @@ import {
   ChevronLeft,
   Clock,
   Users,
-  CreditCard,
-  Lock,
   Star,
-  Zap,
+  Send,
+  Check,
+  Package,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -21,7 +21,12 @@ import type { PitchType } from "@/types/booking";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const STEP_LABELS = ["Formule", "Date & Heure", "Détails", "Paiement"];
+const STEP_LABELS = ["Formule", "Date & Heure", "Détails & Packs", "Confirmation"];
+const DURATION_OPTIONS = [
+  { hours: 1, label: "1 heure" },
+  { hours: 2, label: "2 heures" },
+  { hours: 3, label: "3 heures" },
+];
 
 export default function Booking() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -31,13 +36,17 @@ export default function Booking() {
     isSubmitting,
     isComplete,
     selectedPitchConfig,
+    selectedPackConfig,
     timeSlots,
-    depositAmount,
+    totalPrice,
     canAdvance,
     pitches,
+    packs,
     selectPitch,
     selectDate,
     selectSlot,
+    selectDuration,
+    selectPack,
     updateDetail,
     nextStep,
     prevStep,
@@ -69,10 +78,11 @@ export default function Booking() {
             <CheckCircle2 size={40} className="text-[#F97316]" />
           </div>
           <h2 className="text-white text-5xl mb-4" style={{ fontFamily: "var(--font-display)" }}>
-            RÉSERVATION CONFIRMÉE
+            DEMANDE ENVOYÉE
           </h2>
           <p className="text-[#6080b8] mb-3">
-            Confirmation envoyée à <strong className="text-white">{details.email}</strong>
+            Votre demande de réservation a été envoyée. Vous recevrez une confirmation à{" "}
+            <strong className="text-white">{details.email}</strong>
           </p>
           {selectedPitchConfig && state.selectedDate && state.selectedSlot && (
             <div className="glass-card p-5 mt-8 mb-8 text-left space-y-3">
@@ -90,14 +100,27 @@ export default function Booking() {
                 <span className="text-[#3d5a90] text-sm">Heure</span>
                 <span className="text-white text-sm">{state.selectedSlot.label}</span>
               </div>
+              <div className="flex justify-between">
+                <span className="text-[#3d5a90] text-sm">Durée</span>
+                <span className="text-white text-sm">{state.selectedDuration}h</span>
+              </div>
+              {selectedPackConfig && (
+                <div className="flex justify-between">
+                  <span className="text-[#3d5a90] text-sm">Pack</span>
+                  <span className="text-[#F97316] text-sm font-semibold">{selectedPackConfig.name}</span>
+                </div>
+              )}
               <div className="flex justify-between border-t border-white/10 pt-3">
-                <span className="text-[#3d5a90] text-sm">Dépôt payé</span>
-                <span className="text-[#F97316] font-semibold">{depositAmount}$</span>
+                <span className="text-[#3d5a90] text-sm">Prix estimé</span>
+                <span className="text-[#F97316] font-semibold">{totalPrice}$</span>
               </div>
             </div>
           )}
+          <p className="text-[#3d5a90] text-xs mb-6">
+            Un courriel de confirmation sera envoyé sous peu. Statut : en attente d&apos;approbation.
+          </p>
           <button onClick={reset} className="btn-ghost w-full justify-center">
-            Réserver un autre terrain
+            Faire une autre demande
           </button>
         </div>
       </section>
@@ -115,13 +138,13 @@ export default function Booking() {
           </div>
           <h2 className="text-white leading-none mb-4"
             style={{ fontFamily: "var(--font-display)", fontSize: "clamp(3rem, 8vw, 6rem)" }}>
-            Choisissez votre{" "}
+            Réservez votre{" "}
             <span style={{ background: "linear-gradient(to right, #F97316, #FBBF24)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-              formule
+              terrain
             </span>
           </h2>
           <p className="text-[#3d5a90] max-w-md mx-auto">
-            Sélectionnez votre terrain, choisissez votre créneau et réservez en moins de 2 minutes. Dépôt de 50% requis.
+            Sélectionnez votre terrain, choisissez votre créneau et soumettez votre demande. Confirmation par courriel.
           </p>
         </div>
 
@@ -204,158 +227,208 @@ export default function Booking() {
             </div>
           )}
 
-          {/* Step 2: Date & Time */}
+          {/* Step 2: Date, Time & Duration */}
           {state.step === 2 && (
-            <div className="grid md:grid-cols-2 gap-8">
-              <BookingCalendar selected={state.selectedDate} onSelect={selectDate} />
+            <div className="space-y-8">
+              {/* Duration selector */}
               <div className="glass-card p-6">
-                <div className="flex items-center gap-2 mb-6">
+                <div className="flex items-center gap-2 mb-5">
                   <Clock size={16} className="text-[#F97316]" />
                   <h3 className="text-white text-lg tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
-                    {state.selectedDate
-                      ? format(state.selectedDate, "EEE dd MMM", { locale: fr }).toUpperCase()
-                      : "CHOISIR UNE DATE"}
+                    DURÉE DE RÉSERVATION
                   </h3>
                 </div>
-                {!state.selectedDate ? (
-                  <p className="text-[#3d5a90] text-sm text-center py-16">
-                    Choisissez une date pour voir les créneaux disponibles
-                  </p>
-                ) : (
-                  <div className="grid grid-cols-2 gap-2 max-h-80 overflow-y-auto no-scrollbar pr-1">
-                    {timeSlots.map((slot) => {
-                      const isSelected = state.selectedSlot?.id === slot.id;
-                      return (
-                        <button key={slot.id} disabled={!slot.available}
-                          onClick={() => slot.available && selectSlot(slot)}
-                          className={`px-4 py-3 rounded-lg text-sm transition-all duration-200 flex justify-between items-center ${
-                            !slot.available ? "opacity-30 cursor-not-allowed text-[#3d5a90]"
-                              : isSelected ? "bg-[#F97316] text-[#06080f] font-semibold shadow-[0_0_12px_rgba(249,115,22,0.35)]"
-                              : "border border-white/10 text-[#90a8d8] hover:border-white/30 hover:text-white"
-                          }`}>
-                          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem" }}>{slot.label}</span>
-                          <span className={`text-xs ${isSelected ? "text-[#06080f]/70" : "text-[#3d5a90]"}`}>{slot.price}$</span>
-                        </button>
-                      );
-                    })}
+                <div className="grid grid-cols-3 gap-3">
+                  {DURATION_OPTIONS.map((opt) => {
+                    const isSelected = state.selectedDuration === opt.hours;
+                    return (
+                      <button key={opt.hours} onClick={() => selectDuration(opt.hours)}
+                        className={`px-4 py-4 rounded-lg text-center transition-all duration-200 ${
+                          isSelected
+                            ? "bg-[#F97316] text-[#06080f] font-semibold shadow-[0_0_12px_rgba(249,115,22,0.35)]"
+                            : "border border-white/10 text-[#90a8d8] hover:border-white/30 hover:text-white"
+                        }`}>
+                        <div className="text-2xl mb-1" style={{ fontFamily: "var(--font-display)" }}>{opt.hours}h</div>
+                        <div className={`text-xs ${isSelected ? "text-[#06080f]/70" : "text-[#3d5a90]"}`}>
+                          {selectedPitchConfig ? `${selectedPitchConfig.price * opt.hours}$` : ""}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-8">
+                <BookingCalendar selected={state.selectedDate} onSelect={selectDate} />
+                <div className="glass-card p-6">
+                  <div className="flex items-center gap-2 mb-6">
+                    <Clock size={16} className="text-[#F97316]" />
+                    <h3 className="text-white text-lg tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
+                      {state.selectedDate
+                        ? format(state.selectedDate, "EEE dd MMM", { locale: fr }).toUpperCase()
+                        : "CHOISIR UNE DATE"}
+                    </h3>
                   </div>
-                )}
-                {state.selectedSlot && (
-                  <div className="mt-6 pt-5 border-t border-white/10 flex items-center justify-between">
-                    <span className="text-[#6080b8] text-sm">Sélectionné</span>
-                    <div className="text-right">
-                      <div className="text-[#F97316] text-lg" style={{ fontFamily: "var(--font-display)" }}>
-                        {state.selectedSlot.label}
-                      </div>
-                      <div className="text-[#3d5a90] text-xs">{state.selectedSlot.price}$ / hr</div>
+                  {!state.selectedDate ? (
+                    <p className="text-[#3d5a90] text-sm text-center py-16">
+                      Choisissez une date pour voir les créneaux disponibles
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-2 gap-2 max-h-80 overflow-y-auto no-scrollbar pr-1">
+                      {timeSlots.map((slot) => {
+                        const isSelected = state.selectedSlot?.id === slot.id;
+                        return (
+                          <button key={slot.id} disabled={!slot.available}
+                            onClick={() => slot.available && selectSlot(slot)}
+                            className={`px-4 py-3 rounded-lg text-sm transition-all duration-200 flex justify-between items-center ${
+                              !slot.available ? "opacity-30 cursor-not-allowed text-[#3d5a90]"
+                                : isSelected ? "bg-[#F97316] text-[#06080f] font-semibold shadow-[0_0_12px_rgba(249,115,22,0.35)]"
+                                : "border border-white/10 text-[#90a8d8] hover:border-white/30 hover:text-white"
+                            }`}>
+                            <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem" }}>{slot.label}</span>
+                            <span className={`text-xs ${isSelected ? "text-[#06080f]/70" : "text-[#3d5a90]"}`}>{slot.price * state.selectedDuration}$</span>
+                          </button>
+                        );
+                      })}
                     </div>
-                  </div>
-                )}
+                  )}
+                  {state.selectedSlot && (
+                    <div className="mt-6 pt-5 border-t border-white/10 flex items-center justify-between">
+                      <span className="text-[#6080b8] text-sm">Sélectionné</span>
+                      <div className="text-right">
+                        <div className="text-[#F97316] text-lg" style={{ fontFamily: "var(--font-display)" }}>
+                          {state.selectedSlot.label} — {state.selectedDuration}h
+                        </div>
+                        <div className="text-[#3d5a90] text-xs">{totalPrice}$ total</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
 
-          {/* Step 3: Player Details */}
+          {/* Step 3: Pack Selection + Player Details */}
           {state.step === 3 && (
-            <div className="glass-card p-8 max-w-xl mx-auto">
-              <div className="flex items-center gap-2 mb-8">
-                <Users size={18} className="text-[#F97316]" />
-                <h3 className="text-white text-xl tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
-                  VOS DÉTAILS
-                </h3>
+            <div className="space-y-8">
+              {/* Pack selection */}
+              <div>
+                <div className="flex items-center gap-2 mb-6">
+                  <Package size={18} className="text-[#F97316]" />
+                  <h3 className="text-white text-xl tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
+                    AJOUTER UN PACK <span className="text-[#3d5a90] text-sm font-normal">(optionnel)</span>
+                  </h3>
+                </div>
+                <div className="grid md:grid-cols-3 gap-4 mb-8">
+                  {packs.map((pack) => {
+                    const isSelected = state.selectedPack === pack.id;
+                    return (
+                      <button key={pack.id}
+                        onClick={() => selectPack(isSelected ? null : pack.id)}
+                        className={`glass-card p-6 text-left transition-all duration-300 relative ${
+                          isSelected
+                            ? "border-[#F97316]/50 shadow-[0_0_30px_rgba(249,115,22,0.15)]"
+                            : "hover:border-white/20"
+                        }`}>
+                        {isSelected && (
+                          <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-[#F97316] flex items-center justify-center">
+                            <Check size={14} className="text-[#06080f]" />
+                          </div>
+                        )}
+                        {pack.is_popular && (
+                          <span className="absolute top-3 left-3 bg-[#F97316] text-[#06080f] text-[0.6rem] px-2 py-0.5 rounded-full font-semibold tracking-wider uppercase"
+                            style={{ fontFamily: "var(--font-display)" }}>
+                            Populaire
+                          </span>
+                        )}
+                        <h4 className="text-white text-lg mb-3 tracking-[0.04em] uppercase mt-1" style={{ fontFamily: "var(--font-display)" }}>
+                          {pack.name}
+                        </h4>
+                        <ul className="space-y-2">
+                          {pack.features.map((f) => (
+                            <li key={f} className="flex items-center gap-2">
+                              <Check size={12} className="text-[#F97316] shrink-0" />
+                              <span className="text-[#90a8d8] text-xs">{f}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <div className="space-y-5">
-                {[
-                  { field: "name",     label: "Nom complet",       type: "text",  placeholder: "Alex Tremblay" },
-                  { field: "email",    label: "Courriel",          type: "email", placeholder: "alex@email.com" },
-                  { field: "phone",    label: "Téléphone",         type: "tel",   placeholder: "+1 514 555 0000" },
-                  { field: "teamName", label: "Nom d'équipe",      type: "text",  placeholder: "FC Montréal" },
-                  { field: "notes",    label: "Notes",             type: "text",  placeholder: "Demandes spéciales" },
-                ].map(({ field, label, type, placeholder }) => (
-                  <div key={field}>
-                    <label className="block text-[#6080b8] text-xs tracking-widest uppercase mb-2"
-                      style={{ fontFamily: "var(--font-mono)" }}>
-                      {label}
-                      {["name", "email", "phone"].includes(field) && <span className="text-[#F97316] ml-1">*</span>}
-                    </label>
-                    <input type={type} placeholder={placeholder}
-                      value={details[field as keyof typeof details]}
-                      onChange={(e) => updateDetail(field as keyof typeof details, e.target.value)}
-                      className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-white placeholder-[#2a3f6a] focus:outline-none focus:border-[#F97316]/50 focus:bg-white/[0.06] transition-all text-sm" />
-                  </div>
-                ))}
+
+              {/* Player details */}
+              <div className="glass-card p-8 max-w-xl mx-auto">
+                <div className="flex items-center gap-2 mb-8">
+                  <Users size={18} className="text-[#F97316]" />
+                  <h3 className="text-white text-xl tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
+                    VOS DÉTAILS
+                  </h3>
+                </div>
+                <div className="space-y-5">
+                  {[
+                    { field: "name",     label: "Nom complet",       type: "text",  placeholder: "Alex Tremblay" },
+                    { field: "email",    label: "Courriel",          type: "email", placeholder: "alex@email.com" },
+                    { field: "phone",    label: "Téléphone",         type: "tel",   placeholder: "+1 514 555 0000" },
+                    { field: "teamName", label: "Nom d'équipe",      type: "text",  placeholder: "FC Montréal" },
+                    { field: "notes",    label: "Notes",             type: "text",  placeholder: "Demandes spéciales" },
+                  ].map(({ field, label, type, placeholder }) => (
+                    <div key={field}>
+                      <label className="block text-[#6080b8] text-xs tracking-widest uppercase mb-2"
+                        style={{ fontFamily: "var(--font-mono)" }}>
+                        {label}
+                        {["name", "email", "phone"].includes(field) && <span className="text-[#F97316] ml-1">*</span>}
+                      </label>
+                      <input type={type} placeholder={placeholder}
+                        value={details[field as keyof typeof details]}
+                        onChange={(e) => updateDetail(field as keyof typeof details, e.target.value)}
+                        className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-white placeholder-[#2a3f6a] focus:outline-none focus:border-[#F97316]/50 focus:bg-white/[0.06] transition-all text-sm" />
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
 
-          {/* Step 4: Payment */}
+          {/* Step 4: Review & Confirm */}
           {state.step === 4 && (
             <div className="max-w-xl mx-auto space-y-6">
               <div className="glass-card p-6">
                 <h3 className="text-white text-xl mb-5 tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
-                  RÉSUMÉ DE LA RÉSERVATION
+                  RÉSUMÉ DE LA DEMANDE
                 </h3>
                 <div className="space-y-3 text-sm">
                   {[
                     { label: "Terrain", value: selectedPitchConfig?.name ?? "—" },
                     { label: "Date",    value: state.selectedDate ? format(state.selectedDate, "EEE dd MMM yyyy", { locale: fr }) : "—" },
                     { label: "Heure",   value: state.selectedSlot?.label ?? "—" },
+                    { label: "Durée",   value: `${state.selectedDuration} heure${state.selectedDuration > 1 ? "s" : ""}` },
                     { label: "Joueur",  value: details.name },
+                    { label: "Courriel", value: details.email },
+                    { label: "Téléphone", value: details.phone },
                   ].map(({ label, value }) => (
                     <div key={label} className="flex justify-between">
                       <span className="text-[#3d5a90]">{label}</span>
                       <span className="text-white">{value}</span>
                     </div>
                   ))}
+                  {selectedPackConfig && (
+                    <div className="flex justify-between pt-3 border-t border-white/10">
+                      <span className="text-[#F97316]">Pack demandé</span>
+                      <span className="text-[#F97316] font-semibold">{selectedPackConfig.name}</span>
+                    </div>
+                  )}
                   <div className="pt-4 mt-4 border-t border-white/10 flex justify-between items-baseline">
-                    <span className="text-[#6080b8]">Prix total</span>
-                    <span className="text-white">{selectedPitchConfig?.price ?? 0}$</span>
-                  </div>
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-[#F97316] font-medium">Dépôt (50%)</span>
-                    <span className="text-[#F97316] text-xl font-semibold">{depositAmount}$</span>
+                    <span className="text-[#6080b8] font-medium">Prix estimé</span>
+                    <span className="text-[#F97316] text-xl font-semibold">{totalPrice}$</span>
                   </div>
                 </div>
               </div>
 
-              <div className="glass-card p-6">
-                <div className="flex items-center gap-2 mb-5">
-                  <CreditCard size={18} className="text-[#F97316]" />
-                  <h3 className="text-white text-xl tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
-                    PAIEMENT SÉCURISÉ
-                  </h3>
-                  <div className="ml-auto flex items-center gap-1 text-[#3d5a90] text-xs">
-                    <Lock size={11} />
-                    <span>Chiffré SSL 256-bit</span>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <label className="section-label block mb-2">Numéro de carte</label>
-                    <div className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-[#2a3f6a] text-sm flex justify-between items-center">
-                      <span>&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull;</span>
-                      <div className="flex gap-2 items-center">
-                        <span className="text-[#3d5a90] text-[0.6rem] tracking-wider uppercase">Visa</span>
-                        <span className="text-[#3d5a90] text-[0.6rem] tracking-wider uppercase">MC</span>
-                        <span className="text-[#3d5a90] text-[0.6rem] tracking-wider uppercase">Amex</span>
-                        <span className="text-[#3d5a90] text-[0.6rem] tracking-wider uppercase">Apple Pay</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="section-label block mb-2">Expiration</label>
-                      <div className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-[#2a3f6a] text-sm">MM / AA</div>
-                    </div>
-                    <div>
-                      <label className="section-label block mb-2">CVC</label>
-                      <div className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-[#2a3f6a] text-sm">&bull;&bull;&bull;</div>
-                    </div>
-                  </div>
-                </div>
-                <p className="text-[#2a3f6a] text-xs mt-5 flex items-center gap-1">
-                  <Zap size={12} className="text-[#F97316]/50" />
-                  Propulsé par Stripe. Visa, Mastercard, Amex et Apple Pay acceptés. Vos données ne sont jamais stockées sur nos serveurs.
+              <div className="glass-card p-5 border-[#FBBF24]/20">
+                <p className="text-[#90a8d8] text-sm leading-relaxed">
+                  Votre réservation sera soumise pour approbation. Un courriel de confirmation vous sera envoyé une fois la demande acceptée. Aucun paiement n&apos;est requis à cette étape.
                 </p>
               </div>
 
@@ -390,12 +463,12 @@ export default function Booking() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                     </svg>
-                    Traitement…
+                    Envoi en cours…
                   </span>
                 ) : (
                   <>
-                    <Lock size={15} />
-                    Payer {depositAmount}$ dépôt
+                    <Send size={15} />
+                    Soumettre la demande
                   </>
                 )}
               </button>
