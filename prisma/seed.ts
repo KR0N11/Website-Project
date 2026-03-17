@@ -1,10 +1,7 @@
-import path from "path";
-import { PrismaLibSql } from "@prisma/adapter-libsql";
+import "dotenv/config";
 import { PrismaClient } from "../lib/generated/prisma";
 
-const dbPath = path.resolve(process.cwd(), "dev.db");
-const adapter = new PrismaLibSql({ url: `file://${dbPath}` });
-const prisma = new PrismaClient({ adapter } as ConstructorParameters<typeof PrismaClient>[0]);
+const prisma = new PrismaClient();
 
 type PitchId = "5-a-side" | "7-a-side" | "full-pitch";
 

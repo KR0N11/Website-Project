@@ -4,7 +4,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Booking {
@@ -24,4 +26,8 @@ model Booking {
   status          String   @default("pending")
   bookedAt        DateTime @default(now())
   stripeSessionId String?
+
+  @@index([date])
+  @@index([status])
+  @@index([pitchId, date])
 }
