@@ -57,6 +57,7 @@ export function useBooking() {
           .from("bookings")
           .select("time, duration")
           .eq("date", dateStr)
+          .eq("pitch_id", state.selectedPitch)
           .neq("status", "cancelled");
 
         if (data) {
@@ -248,6 +249,7 @@ export function useBooking() {
       const sorted = [...state.selectedSlots].sort((a, b) => a.time.localeCompare(b.time));
 
       const { error } = await supabase.from("bookings").insert({
+        pitch_id: state.selectedPitch,
         date: dateStr,
         time: sorted[0].time,
         duration: totalDuration,

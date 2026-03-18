@@ -57,6 +57,7 @@ export default function Booking() {
   } = useBooking();
 
   useEffect(() => {
+    if (isComplete) return;
     const ctx = gsap.context(() => {
       gsap.fromTo(".booking-header",
         { opacity: 0, y: 50 },
@@ -70,7 +71,14 @@ export default function Booking() {
       );
     }, sectionRef);
     return () => ctx.revert();
-  }, []);
+  }, [isComplete]);
+
+  useEffect(() => {
+    if (isComplete) {
+      ScrollTrigger.getAll().forEach((t) => t.refresh());
+      sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [isComplete]);
 
   if (isComplete) {
     return (
