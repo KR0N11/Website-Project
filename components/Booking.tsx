@@ -231,57 +231,117 @@ export default function Booking() {
             </div>
           )}
 
-          {/* Step 2: Date & Time — select consecutive 30-min slots */}
+          {/* Step 2: Pack + Date & Time */}
           {state.step === 2 && (
-            <div className="grid md:grid-cols-2 gap-8">
-              <BookingCalendar selected={state.selectedDate} onSelect={selectDate} />
-              <div className="glass-card p-6">
-                <div className="flex items-center gap-2 mb-5">
-                  <Clock size={16} className="text-[#F97316]" />
+            <div className="space-y-6">
+              {/* Pack selection */}
+              <div className="glass-card p-5">
+                <div className="flex items-center justify-between mb-4">
                   <h3 className="text-white text-lg tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
-                    {state.selectedDate
-                      ? format(state.selectedDate, "EEE dd MMM", { locale: fr }).toUpperCase()
-                      : "CHOISIR UNE DATE"}
+                    FORFAIT
+                    <span className="text-[#3d5a90] text-xs font-normal ml-2 tracking-normal lowercase">optionnel</span>
                   </h3>
+                  {state.selectedPack && (
+                    <button onClick={() => selectPack(null)} className="text-[#3d5a90] text-xs hover:text-white transition-colors">
+                      Retirer
+                    </button>
+                  )}
                 </div>
-                {!state.selectedDate ? (
-                  <p className="text-[#3d5a90] text-sm text-center py-16">
-                    Choisissez une date pour voir les créneaux
+                <div className="grid grid-cols-3 gap-3">
+                  {packs.map((pack) => {
+                    const selected = state.selectedPack === pack.id;
+                    return (
+                      <button key={pack.id} onClick={() => selectPack(pack.id)}
+                        className={`relative text-left p-4 rounded-xl border transition-all duration-300 ${
+                          selected
+                            ? "border-[#F97316]/50 bg-[#F97316]/[0.08] shadow-[0_0_20px_rgba(249,115,22,0.12)]"
+                            : "border-white/10 hover:border-white/20 bg-white/[0.02]"
+                        }`}>
+                        {pack.is_popular && (
+                          <span className="absolute -top-2 right-3 bg-[#F97316] text-[#06080f] text-[0.55rem] px-2 py-0.5 rounded-full font-semibold tracking-wider uppercase"
+                            style={{ fontFamily: "var(--font-display)" }}>
+                            Populaire
+                          </span>
+                        )}
+                        {selected && (
+                          <div className="absolute top-2 left-2 w-5 h-5 rounded-full bg-[#F97316] flex items-center justify-center">
+                            <Check size={12} className="text-[#06080f]" />
+                          </div>
+                        )}
+                        <h4 className="text-white text-sm font-semibold mb-2 tracking-wide uppercase" style={{ fontFamily: "var(--font-display)" }}>
+                          {pack.name}
+                        </h4>
+                        <ul className="space-y-1">
+                          {pack.features.map((f) => (
+                            <li key={f} className="flex items-start gap-1.5">
+                              <Check size={10} className="text-[#F97316] shrink-0 mt-0.5" />
+                              <span className="text-[#6080b8] text-[0.7rem] leading-tight">{f}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </button>
+                    );
+                  })}
+                </div>
+                {state.selectedPack && (
+                  <p className="text-[#FBBF24] text-xs mt-4 flex items-center gap-1.5">
+                    <AlertTriangle size={12} />
+                    Les forfaits nécessitent une approbation avant le paiement.
                   </p>
-                ) : (
-                  <>
-                    <p className="text-[#3d5a90] text-xs mb-4">
-                      Sélectionnez jusqu&apos;à 4 créneaux consécutifs de 30 min.
-                    </p>
-                    <div className="grid grid-cols-4 gap-1.5 max-h-72 overflow-y-auto no-scrollbar pr-1">
-                      {timeSlots.map((slot) => {
-                        const isSelected = state.selectedSlots.some((s) => s.id === slot.id);
-                        return (
-                          <button key={slot.id} disabled={!slot.available}
-                            onClick={() => slot.available && selectSlot(slot)}
-                            className={`py-2 rounded-md text-center transition-all duration-150 ${
-                              !slot.available
-                                ? "opacity-20 cursor-not-allowed text-[#3d5a90] bg-white/[0.02]"
-                                : isSelected
-                                  ? "bg-[#F97316] text-[#06080f] font-semibold shadow-[0_0_10px_rgba(249,115,22,0.3)]"
-                                  : "bg-white/[0.03] text-[#90a8d8] hover:bg-white/[0.08] hover:text-white"
-                            }`}>
-                            <span className="text-xs" style={{ fontFamily: "var(--font-mono)" }}>{slot.label}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </>
                 )}
-                {state.selectedSlots.length > 0 && (
-                  <div className="mt-5 pt-4 border-t border-white/10 flex items-center justify-between">
-                    <span className="text-white text-sm">
-                      {startTimeLabel} — {endTimeLabel}
-                      <span className="text-[#3d5a90] ml-2 text-xs">{totalDuration} min · {priceCategory}</span>
-                    </span>
-                    <span className="text-[#F97316] text-lg font-bold">{totalPrice}$</span>
+              </div>
+
+              {/* Date & Time */}
+              <div className="grid md:grid-cols-2 gap-8">
+                <BookingCalendar selected={state.selectedDate} onSelect={selectDate} />
+                <div className="glass-card p-6">
+                  <div className="flex items-center gap-2 mb-5">
+                    <Clock size={16} className="text-[#F97316]" />
+                    <h3 className="text-white text-lg tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
+                      {state.selectedDate
+                        ? format(state.selectedDate, "EEE dd MMM", { locale: fr }).toUpperCase()
+                        : "CHOISIR UNE DATE"}
+                    </h3>
                   </div>
-                )}
+                  {!state.selectedDate ? (
+                    <p className="text-[#3d5a90] text-sm text-center py-16">
+                      Choisissez une date pour voir les créneaux
+                    </p>
+                  ) : (
+                    <>
+                      <p className="text-[#3d5a90] text-xs mb-4">
+                        Sélectionnez jusqu&apos;à 4 créneaux consécutifs de 30 min.
+                      </p>
+                      <div className="grid grid-cols-4 gap-1.5 max-h-72 overflow-y-auto no-scrollbar pr-1">
+                        {timeSlots.map((slot) => {
+                          const isSelected = state.selectedSlots.some((s) => s.id === slot.id);
+                          return (
+                            <button key={slot.id} disabled={!slot.available}
+                              onClick={() => slot.available && selectSlot(slot)}
+                              className={`py-2 rounded-md text-center transition-all duration-150 ${
+                                !slot.available
+                                  ? "opacity-20 cursor-not-allowed text-[#3d5a90] bg-white/[0.02]"
+                                  : isSelected
+                                    ? "bg-[#F97316] text-[#06080f] font-semibold shadow-[0_0_10px_rgba(249,115,22,0.3)]"
+                                    : "bg-white/[0.03] text-[#90a8d8] hover:bg-white/[0.08] hover:text-white"
+                              }`}>
+                              <span className="text-xs" style={{ fontFamily: "var(--font-mono)" }}>{slot.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+                  {state.selectedSlots.length > 0 && (
+                    <div className="mt-5 pt-4 border-t border-white/10 flex items-center justify-between">
+                      <span className="text-white text-sm">
+                        {startTimeLabel} — {endTimeLabel}
+                        <span className="text-[#3d5a90] ml-2 text-xs">{totalDuration} min · {priceCategory}</span>
+                      </span>
+                      <span className="text-[#F97316] text-lg font-bold">{totalPrice}$</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -322,54 +382,6 @@ export default function Booking() {
           {/* Step 4: Payment */}
           {state.step === 4 && (
             <div className="max-w-xl mx-auto space-y-6">
-              {/* Pack selection */}
-              <div className="glass-card p-6">
-                <h3 className="text-white text-xl mb-2 tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
-                  AJOUTER UN FORFAIT
-                </h3>
-                <p className="text-[#3d5a90] text-sm mb-2">Optionnel — améliorez votre expérience avec un pack.</p>
-                <p className="text-[#FBBF24] text-xs mb-5 flex items-center gap-1.5">
-                  <AlertTriangle size={12} />
-                  Les forfaits nécessitent une approbation avant le paiement.
-                </p>
-                <div className="grid grid-cols-3 gap-3">
-                  {packs.map((pack) => {
-                    const selected = state.selectedPack === pack.id;
-                    return (
-                      <button key={pack.id} onClick={() => selectPack(pack.id)}
-                        className={`relative text-left p-4 rounded-xl border transition-all duration-300 ${
-                          selected
-                            ? "border-[#F97316]/50 bg-[#F97316]/[0.08] shadow-[0_0_20px_rgba(249,115,22,0.12)]"
-                            : "border-white/10 hover:border-white/20 bg-white/[0.02]"
-                        }`}>
-                        {pack.is_popular && (
-                          <span className="absolute -top-2 right-3 bg-[#F97316] text-[#06080f] text-[0.55rem] px-2 py-0.5 rounded-full font-semibold tracking-wider uppercase"
-                            style={{ fontFamily: "var(--font-display)" }}>
-                            Populaire
-                          </span>
-                        )}
-                        {selected && (
-                          <div className="absolute top-2 left-2 w-5 h-5 rounded-full bg-[#F97316] flex items-center justify-center">
-                            <Check size={12} className="text-[#06080f]" />
-                          </div>
-                        )}
-                        <h4 className="text-white text-sm font-semibold mb-2 tracking-wide uppercase" style={{ fontFamily: "var(--font-display)" }}>
-                          {pack.name}
-                        </h4>
-                        <ul className="space-y-1">
-                          {pack.features.map((f) => (
-                            <li key={f} className="flex items-start gap-1.5">
-                              <Check size={10} className="text-[#F97316] shrink-0 mt-0.5" />
-                              <span className="text-[#6080b8] text-[0.7rem] leading-tight">{f}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
               <div className="glass-card p-6">
                 <h3 className="text-white text-xl mb-5 tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
                   RÉSUMÉ
