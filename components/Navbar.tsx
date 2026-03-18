@@ -8,7 +8,6 @@ const NAV_LINKS = [
   { label: "Galerie",   href: "#galerie" },
   { label: "Tarifs",    href: "#tarifs" },
   { label: "FAQ",       href: "#faq" },
-  { label: "Réserver",  href: "#booking" },
 ];
 
 export default function Navbar() {
@@ -98,7 +97,6 @@ export default function Navbar() {
             {link.label}
           </a>
         ))}
-        <a href="#booking" onClick={() => setOpen(false)} className="btn-neon mt-4">Réserver</a>
         <a href="/admin" onClick={() => setOpen(false)} className="flex items-center gap-2 text-[#F97316] text-lg mt-4 tracking-[0.1em] uppercase">
           <ShieldCheck size={20} /> Admin
         </a>
