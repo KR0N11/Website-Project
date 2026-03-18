@@ -245,7 +245,7 @@ export function useBooking() {
     try {
       const dateStr = format(state.selectedDate, "yyyy-MM-dd");
       const hasPack = !!state.selectedPack;
-      const bookingStatus = hasPack ? "awaiting_approval" : "pending";
+      const bookingStatus = hasPack ? "awaiting_approval" : "confirmed";
       const sorted = [...state.selectedSlots].sort((a, b) => a.time.localeCompare(b.time));
 
       const { error } = await supabase.from("bookings").insert({

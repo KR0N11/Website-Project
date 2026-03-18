@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
               <tr><td style="padding:8px 0;color:#888;">Prix</td><td style="padding:8px 0;">${booking.price}$ CAD</td></tr>
               <tr><td style="padding:8px 0;color:#888;">Courriel</td><td style="padding:8px 0;">${booking.email}</td></tr>
               <tr><td style="padding:8px 0;color:#888;">Téléphone</td><td style="padding:8px 0;">${booking.phone}</td></tr>
-              <tr><td style="padding:8px 0;color:#888;">Statut</td><td style="padding:8px 0;color:#F97316;font-weight:bold;">${booking.status === "awaiting_approval" ? "En attente d'approbation" : "En attente de paiement"}</td></tr>
+              <tr><td style="padding:8px 0;color:#888;">Statut</td><td style="padding:8px 0;color:#F97316;font-weight:bold;">${booking.status === "awaiting_approval" ? "En attente d'approbation" : "Confirmée"}</td></tr>
               ${booking.notes ? `<tr><td style="padding:8px 0;color:#888;">Notes</td><td style="padding:8px 0;">${booking.notes}</td></tr>` : ""}
             </table>
             <p style="margin-top:20px;"><a href="${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/admin" style="display:inline-block;padding:12px 24px;background:#F97316;color:white;text-decoration:none;border-radius:8px;">Voir dans le portail admin</a></p>
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
         to: [booking.email],
         subject: booking.status === "awaiting_approval"
           ? "MTLWCUP — Demande reçue (en attente d'approbation)"
-          : "MTLWCUP — Réservation reçue",
+          : "MTLWCUP — Réservation confirmée",
         html: `
           <div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:20px;">
             <h2 style="color:#F97316;">MTLWCUP</h2>
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
             ${booking.status === "awaiting_approval"
               ? `<p>Votre demande de réservation avec forfait a bien été reçue et est <strong>en attente d'approbation</strong>.</p>
                  <p>Nous vous contacterons à <strong>${booking.email}</strong> une fois votre demande traitée.</p>`
-              : `<p>Votre réservation a bien été reçue !</p>`
+              : `<p>Votre réservation est <strong style="color:#4ade80;">confirmée</strong> ! À bientôt sur le terrain.</p>`
             }
             <table style="width:100%;border-collapse:collapse;margin:20px 0;">
               <tr><td style="padding:8px 0;color:#888;">Date</td><td style="padding:8px 0;font-weight:bold;">${booking.date}</td></tr>
