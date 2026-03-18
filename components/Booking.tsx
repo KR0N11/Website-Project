@@ -263,14 +263,16 @@ export default function Booking() {
                             Populaire
                           </span>
                         )}
-                        {selected && (
-                          <div className="absolute top-2 left-2 w-5 h-5 rounded-full bg-[#F97316] flex items-center justify-center">
-                            <Check size={12} className="text-[#06080f]" />
-                          </div>
-                        )}
-                        <h4 className="text-white text-sm font-semibold mb-2 tracking-wide uppercase" style={{ fontFamily: "var(--font-display)" }}>
-                          {pack.name}
-                        </h4>
+                        <div className="flex items-start justify-between mb-2">
+                          <h4 className="text-white text-sm font-semibold tracking-wide uppercase" style={{ fontFamily: "var(--font-display)" }}>
+                            {pack.name}
+                          </h4>
+                          {selected && (
+                            <div className="w-5 h-5 rounded-full bg-[#F97316] flex items-center justify-center shrink-0 ml-2">
+                              <Check size={12} className="text-[#06080f]" />
+                            </div>
+                          )}
+                        </div>
                         <ul className="space-y-1">
                           {pack.features.map((f) => (
                             <li key={f} className="flex items-start gap-1.5">
@@ -310,22 +312,22 @@ export default function Booking() {
                   ) : (
                     <>
                       <p className="text-[#3d5a90] text-xs mb-4">
-                        Sélectionnez jusqu&apos;à 4 créneaux consécutifs de 30 min.
+                        Sélectionnez jusqu&apos;à 2h consécutives (max 4 créneaux de 30 min).
                       </p>
-                      <div className="grid grid-cols-4 gap-1.5 max-h-72 overflow-y-auto no-scrollbar pr-1">
+                      <div className="grid grid-cols-3 gap-2 max-h-80 overflow-y-auto no-scrollbar pr-1">
                         {timeSlots.map((slot) => {
                           const isSelected = state.selectedSlots.some((s) => s.id === slot.id);
                           return (
                             <button key={slot.id} disabled={!slot.available}
-                              onClick={() => slot.available && selectSlot(slot)}
-                              className={`py-2 rounded-md text-center transition-all duration-150 ${
+                              onClick={() => slot.available && selectSlot(slot, timeSlots)}
+                              className={`py-2.5 rounded-lg text-center transition-all duration-150 ${
                                 !slot.available
                                   ? "opacity-20 cursor-not-allowed text-[#3d5a90] bg-white/[0.02]"
                                   : isSelected
                                     ? "bg-[#F97316] text-[#06080f] font-semibold shadow-[0_0_10px_rgba(249,115,22,0.3)]"
-                                    : "bg-white/[0.03] text-[#90a8d8] hover:bg-white/[0.08] hover:text-white"
+                                    : "bg-white/[0.04] text-[#90a8d8] hover:bg-white/[0.10] hover:text-white border border-white/[0.06]"
                               }`}>
-                              <span className="text-xs" style={{ fontFamily: "var(--font-mono)" }}>{slot.label}</span>
+                              <span className="text-sm" style={{ fontFamily: "var(--font-mono)" }}>{slot.label}</span>
                             </button>
                           );
                         })}

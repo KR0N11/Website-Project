@@ -131,22 +131,23 @@ export function useBooking() {
     setState((s) => ({ ...s, selectedDate: date, selectedSlot: null, selectedSlots: [] }));
   }, []);
 
-  // Multi-slot selection: consecutive 30-min slots, max MAX_SLOTS
-  const selectSlot = useCallback((slot: TimeSlot) => {
+  // Multi-slot selection: click to set start, click again to set end (auto-fills range)
+  const selectSlot = useCallback((slot: TimeSlot, allSlots?: TimeSlot[]) => {
     setState((s) => {
       const slotIdx = slotTimeIndex(slot.time);
 
-      // Already selected? Remove if at edge
+      // Already selected? Deselect
       const idx = s.selectedSlots.findIndex((sl) => sl.id === slot.id);
       if (idx !== -1) {
         if (s.selectedSlots.length === 1) {
           return { ...s, selectedSlot: null, selectedSlots: [] };
         }
+        // Remove from edge only
         if (idx === 0 || idx === s.selectedSlots.length - 1) {
           const updated = s.selectedSlots.filter((_, i) => i !== idx);
           return { ...s, selectedSlots: updated, selectedSlot: updated[0] };
         }
-        return s; // can't remove from middle
+        return s;
       }
 
       // No slots yet — start fresh
@@ -154,23 +155,34 @@ export function useBooking() {
         return { ...s, selectedSlots: [slot], selectedSlot: slot };
       }
 
-      // Max slots reached
-      if (s.selectedSlots.length >= MAX_SLOTS) {
+      // Build a range from first selected to clicked slot (or clicked to first)
+      const sorted = [...s.selectedSlots].sort((a, b) => a.time.localeCompare(b.time));
+      const firstIdx = slotTimeIndex(sorted[0].time);
+      const startIdx = Math.min(firstIdx, slotIdx);
+      const endIdx = Math.max(firstIdx, slotIdx);
+      const rangeLength = endIdx - startIdx + 1;
+
+      // If range exceeds max, start fresh with just this slot
+      if (rangeLength > MAX_SLOTS) {
         return { ...s, selectedSlots: [slot], selectedSlot: slot };
       }
 
-      // Check if adjacent to current range
-      const sorted = [...s.selectedSlots].sort((a, b) => a.time.localeCompare(b.time));
-      const firstIdx = slotTimeIndex(sorted[0].time);
-      const lastIdx = slotTimeIndex(sorted[sorted.length - 1].time);
-
-      if (slotIdx === lastIdx + 1 || slotIdx === firstIdx - 1) {
-        const updated = [...s.selectedSlots, slot].sort((a, b) => a.time.localeCompare(b.time));
-        return { ...s, selectedSlots: updated, selectedSlot: updated[0] };
+      // Auto-fill the range using the available timeSlots
+      const slotsSource = allSlots || [];
+      const rangeSlots: TimeSlot[] = [];
+      for (let i = startIdx; i <= endIdx; i++) {
+        const time = SLOT_TIMES[i];
+        if (!time) break;
+        const found = slotsSource.find((sl) => sl.time === time);
+        if (found && found.available) {
+          rangeSlots.push(found);
+        } else {
+          // Gap has unavailable slot — start fresh
+          return { ...s, selectedSlots: [slot], selectedSlot: slot };
+        }
       }
 
-      // Not adjacent — start new selection
-      return { ...s, selectedSlots: [slot], selectedSlot: slot };
+      return { ...s, selectedSlots: rangeSlots, selectedSlot: rangeSlots[0] };
     });
   }, []);
 
