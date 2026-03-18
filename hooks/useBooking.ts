@@ -100,14 +100,43 @@ export function useBooking() {
     setState((s) => ({ ...s, selectedDate: date, selectedSlot: null, selectedSlots: [] }));
   }, []);
 
-  // Single slot selection: click to select, click again to deselect
+  // Multi-hour selection: only consecutive slots allowed, click to toggle
   const selectSlot = useCallback((slot: TimeSlot) => {
     setState((s) => {
-      const isSelected = s.selectedSlot?.id === slot.id;
-      if (isSelected) {
-        return { ...s, selectedSlot: null, selectedSlots: [] };
+      const slotHr = parseInt(slot.time.split(":")[0], 10);
+
+      // Already selected? Remove only if it's at the edge (first or last)
+      const idx = s.selectedSlots.findIndex((sl) => sl.id === slot.id);
+      if (idx !== -1) {
+        if (s.selectedSlots.length === 1) {
+          return { ...s, selectedSlot: null, selectedSlots: [] };
+        }
+        // Only allow removing from start or end to keep them consecutive
+        if (idx === 0 || idx === s.selectedSlots.length - 1) {
+          const updated = s.selectedSlots.filter((_, i) => i !== idx);
+          return { ...s, selectedSlots: updated, selectedSlot: updated[0] };
+        }
+        return s; // can't remove from middle
       }
-      return { ...s, selectedSlot: slot, selectedSlots: [slot] };
+
+      // No slots yet — start fresh
+      if (s.selectedSlots.length === 0) {
+        return { ...s, selectedSlots: [slot], selectedSlot: slot };
+      }
+
+      // Check if this slot is adjacent to current range
+      const sorted = [...s.selectedSlots].sort((a, b) => a.time.localeCompare(b.time));
+      const firstHr = parseInt(sorted[0].time.split(":")[0], 10);
+      const lastHr = parseInt(sorted[sorted.length - 1].time.split(":")[0], 10);
+
+      if (slotHr === lastHr + 1 || slotHr === firstHr - 1) {
+        // Adjacent — add and re-sort
+        const updated = [...s.selectedSlots, slot].sort((a, b) => a.time.localeCompare(b.time));
+        return { ...s, selectedSlots: updated, selectedSlot: updated[0] };
+      }
+
+      // Not adjacent — start new selection with just this slot
+      return { ...s, selectedSlots: [slot], selectedSlot: slot };
     });
   }, []);
 
