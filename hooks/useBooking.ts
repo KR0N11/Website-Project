@@ -100,44 +100,14 @@ export function useBooking() {
     setState((s) => ({ ...s, selectedDate: date, selectedSlot: null, selectedSlots: [] }));
   }, []);
 
-  // Toggle a slot: add or remove from selectedSlots. Must be consecutive.
+  // Single slot selection: click to select, click again to deselect
   const selectSlot = useCallback((slot: TimeSlot) => {
     setState((s) => {
-      const existing = s.selectedSlots.find((sl) => sl.id === slot.id);
-      if (existing) {
-        // Remove this slot — only allow if it's at the start or end (keep consecutive)
-        const filtered = s.selectedSlots.filter((sl) => sl.id !== slot.id);
-        // Check if remaining are still consecutive
-        if (filtered.length <= 1) {
-          return { ...s, selectedSlots: filtered, selectedSlot: filtered[0] ?? null };
-        }
-        const sorted = [...filtered].sort((a, b) => a.time.localeCompare(b.time));
-        let consecutive = true;
-        for (let i = 1; i < sorted.length; i++) {
-          const prevHr = parseInt(sorted[i - 1].time.split(":")[0], 10);
-          const curHr = parseInt(sorted[i].time.split(":")[0], 10);
-          if (curHr - prevHr !== 1) { consecutive = false; break; }
-        }
-        if (!consecutive) return s; // can't remove from middle
-        return { ...s, selectedSlots: sorted, selectedSlot: sorted[0] };
+      const isSelected = s.selectedSlot?.id === slot.id;
+      if (isSelected) {
+        return { ...s, selectedSlot: null, selectedSlots: [] };
       }
-
-      // Adding a new slot — check it's consecutive with existing
-      if (s.selectedSlots.length === 0) {
-        return { ...s, selectedSlots: [slot], selectedSlot: slot };
-      }
-
-      const all = [...s.selectedSlots, slot].sort((a, b) => a.time.localeCompare(b.time));
-      // Verify consecutiveness
-      for (let i = 1; i < all.length; i++) {
-        const prevHr = parseInt(all[i - 1].time.split(":")[0], 10);
-        const curHr = parseInt(all[i].time.split(":")[0], 10);
-        if (curHr - prevHr !== 1) {
-          // Not consecutive — replace selection with just this slot
-          return { ...s, selectedSlots: [slot], selectedSlot: slot };
-        }
-      }
-      return { ...s, selectedSlots: all, selectedSlot: all[0] };
+      return { ...s, selectedSlot: slot, selectedSlots: [slot] };
     });
   }, []);
 

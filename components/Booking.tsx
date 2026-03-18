@@ -102,7 +102,7 @@ export default function Booking() {
               </p>
             </>
           )}
-          {selectedPitchConfig && state.selectedDate && state.selectedSlots.length > 0 && (
+          {selectedPitchConfig && state.selectedDate && state.selectedSlot && (
             <div className="glass-card p-5 mt-8 mb-8 text-left space-y-3">
               <div className="flex justify-between">
                 <span className="text-[#3d5a90] text-sm">Terrain</span>
@@ -115,10 +115,8 @@ export default function Booking() {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#3d5a90] text-sm">Heures</span>
-                <span className="text-white text-sm">
-                  {state.selectedSlots.map(s => s.label).join(", ")} ({totalHours}h)
-                </span>
+                <span className="text-[#3d5a90] text-sm">Heure</span>
+                <span className="text-white text-sm">{state.selectedSlot.label}</span>
               </div>
               {!packRequiresApproval && (
                 <div className="flex justify-between border-t border-white/10 pt-3">
@@ -250,7 +248,7 @@ export default function Booking() {
                   </h3>
                 </div>
                 <p className="text-[#3d5a90] text-xs mb-4">
-                  Cliquez sur plusieurs créneaux consécutifs pour réserver plusieurs heures.
+                  Sélectionnez un créneau d&apos;une heure.
                 </p>
                 {!state.selectedDate ? (
                   <p className="text-[#3d5a90] text-sm text-center py-16">
@@ -275,25 +273,14 @@ export default function Booking() {
                     })}
                   </div>
                 )}
-                {state.selectedSlots.length > 0 && (
-                  <div className="mt-6 pt-5 border-t border-white/10">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[#6080b8] text-sm">Sélectionné</span>
-                      <span className="text-[#F97316] text-sm font-semibold" style={{ fontFamily: "var(--font-display)" }}>
-                        {totalHours} heure{totalHours > 1 ? "s" : ""}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5 mb-2">
-                      {state.selectedSlots.map((s) => (
-                        <span key={s.id} className="bg-[#F97316]/20 text-[#F97316] text-xs px-2 py-1 rounded-md"
-                          style={{ fontFamily: "var(--font-mono)" }}>
-                          {s.label}
-                        </span>
-                      ))}
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <span className="text-[#3d5a90]">Total</span>
-                      <span className="text-white font-semibold">{totalPrice}$ ({depositAmount}$ dépôt)</span>
+                {state.selectedSlot && (
+                  <div className="mt-6 pt-5 border-t border-white/10 flex items-center justify-between">
+                    <span className="text-[#6080b8] text-sm">Sélectionné</span>
+                    <div className="text-right">
+                      <div className="text-[#F97316] text-lg" style={{ fontFamily: "var(--font-display)" }}>
+                        {state.selectedSlot.label}
+                      </div>
+                      <div className="text-[#3d5a90] text-xs">{state.selectedSlot.price}$ / hr</div>
                     </div>
                   </div>
                 )}
@@ -393,9 +380,7 @@ export default function Booking() {
                   {[
                     { label: "Terrain", value: selectedPitchConfig?.name ?? "—" },
                     { label: "Date",    value: state.selectedDate ? format(state.selectedDate, "EEE dd MMM yyyy", { locale: fr }) : "—" },
-                    { label: "Heures",  value: state.selectedSlots.length > 0
-                        ? `${state.selectedSlots.map(s => s.label).join(", ")} (${totalHours}h)`
-                        : "—" },
+                    { label: "Heure",   value: state.selectedSlot?.label ?? "—" },
                     { label: "Joueur",  value: details.name },
                     ...(selectedPackConfig ? [{ label: "Forfait", value: selectedPackConfig.name }] : []),
                   ].map(({ label, value }) => (
@@ -405,7 +390,7 @@ export default function Booking() {
                     </div>
                   ))}
                   <div className="pt-4 mt-4 border-t border-white/10 flex justify-between items-baseline">
-                    <span className="text-[#6080b8]">Prix total ({totalHours}h)</span>
+                    <span className="text-[#6080b8]">Prix total</span>
                     <span className="text-white">{totalPrice}$</span>
                   </div>
                   {state.selectedPack ? (
