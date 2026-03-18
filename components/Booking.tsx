@@ -88,7 +88,7 @@ export default function Booking() {
                 Votre réservation avec le forfait <strong className="text-[#FBBF24]">{selectedPackConfig?.name}</strong> nécessite une approbation.
               </p>
               <p className="text-[#3d5a90] text-sm mb-6">
-                Vous recevrez un courriel à <strong className="text-white">{details.email}</strong> une fois votre demande approuvée.
+                Contactez-nous à <strong className="text-white">mtlworldcup@gmail.com</strong> pour le suivi de votre demande.
               </p>
             </>
           ) : (

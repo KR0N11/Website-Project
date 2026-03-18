@@ -55,12 +55,24 @@ export function useBooking() {
       try {
         const { data } = await supabase
           .from("bookings")
-          .select("time")
+          .select("time, duration")
           .eq("date", dateStr)
           .neq("status", "cancelled");
 
         if (data) {
-          setBookedSlots(new Set(data.map((b: { time: string }) => b.time)));
+          const allBooked = new Set<string>();
+          for (const b of data as { time: string; duration: number }[]) {
+            const slots = Math.ceil((b.duration || 30) / 30);
+            const [hr, min] = b.time.split(":").map(Number);
+            let totalMin = hr * 60 + min;
+            for (let i = 0; i < slots; i++) {
+              const h = Math.floor(totalMin / 60);
+              const m = totalMin % 60;
+              allBooked.add(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+              totalMin += 30;
+            }
+          }
+          setBookedSlots(allBooked);
         }
       } catch {
         setBookedSlots(new Set());
