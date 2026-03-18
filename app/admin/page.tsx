@@ -21,7 +21,7 @@ type AdminBooking = {
   players: number;
   price: number;
   deposit_paid: number;
-  status: "confirmed" | "pending" | "cancelled";
+  status: "confirmed" | "pending" | "cancelled" | "awaiting_approval";
   notes: string | null;
   created_at: string;
 };
@@ -30,9 +30,10 @@ const ADMIN_PIN = "1234";
 
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; icon: typeof CheckCircle2 }> = {
-  confirmed: { bg: "rgba(34,197,94,0.12)",  text: "#4ade80", icon: CheckCircle2 },
-  pending:   { bg: "rgba(251,191,36,0.12)", text: "#FBBF24", icon: Clock       },
-  cancelled: { bg: "rgba(239,68,68,0.12)",  text: "#f87171", icon: XCircle     },
+  confirmed:         { bg: "rgba(34,197,94,0.12)",  text: "#4ade80", icon: CheckCircle2 },
+  pending:           { bg: "rgba(251,191,36,0.12)", text: "#FBBF24", icon: Clock       },
+  cancelled:         { bg: "rgba(239,68,68,0.12)",  text: "#f87171", icon: XCircle     },
+  awaiting_approval: { bg: "rgba(168,85,247,0.12)", text: "#c084fc", icon: Clock       },
 };
 
 function formatTime(t: string) {
@@ -44,9 +45,15 @@ function totalRevenue(bookings: AdminBooking[]) {
   return bookings.filter(b => b.status !== "cancelled").reduce((s, b) => s + b.deposit_paid, 0);
 }
 
-function BookingModal({ booking, onClose }: { booking: AdminBooking; onClose: () => void }) {
-  const sc = STATUS_STYLES[booking.status];
+function BookingModal({ booking, onClose, onApprove, onReject }: {
+  booking: AdminBooking;
+  onClose: () => void;
+  onApprove?: (id: string) => void;
+  onReject?: (id: string) => void;
+}) {
+  const sc = STATUS_STYLES[booking.status] ?? STATUS_STYLES.pending;
   const StatusIcon = sc.icon;
+  const packNote = booking.notes?.match(/Pack:\s*(\S+)/)?.[1];
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
       <div className="glass-card p-8 max-w-md w-full relative" onClick={(e) => e.stopPropagation()}>
@@ -60,13 +67,20 @@ function BookingModal({ booking, onClose }: { booking: AdminBooking; onClose: ()
           <span className="flex items-center gap-1.5 text-xs px-3 py-1 rounded-full"
             style={{ background: sc.bg, color: sc.text }}>
             <StatusIcon size={12} />
-            {booking.status.toUpperCase()}
+            {booking.status === "awaiting_approval" ? "APPROBATION" : booking.status.toUpperCase()}
           </span>
         </div>
         <h2 className="text-white text-3xl mb-1" style={{ fontFamily: "var(--font-display)" }}>
           {booking.player_name}
         </h2>
         <p className="text-[#6080b8] text-sm mb-6">{booking.team_name ?? "—"}</p>
+        {packNote && (
+          <div className="mb-4 px-3 py-2 rounded-lg border border-purple-500/30 bg-purple-500/10">
+            <span className="text-purple-300 text-xs uppercase tracking-wider" style={{ fontFamily: "var(--font-mono)" }}>
+              Forfait: {packNote.replace("pack-", "").replace("-", " ")}
+            </span>
+          </div>
+        )}
         <div className="space-y-3 mb-6">
           {[
             { label: "Date",    value: format(parseISO(booking.date), "EEE dd MMM", { locale: fr }) },
@@ -95,6 +109,22 @@ function BookingModal({ booking, onClose }: { booking: AdminBooking; onClose: ()
             <div className="text-white font-semibold">{booking.price - booking.deposit_paid}$ CAD</div>
           </div>
         </div>
+        {booking.status === "awaiting_approval" && (
+          <div className="flex gap-3 mt-6">
+            <button
+              onClick={() => onApprove?.(booking.id)}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-green-500/20 border border-green-500/40 text-green-400 hover:bg-green-500/30 transition-all text-sm font-semibold"
+            >
+              <CheckCircle2 size={16} /> Approuver
+            </button>
+            <button
+              onClick={() => onReject?.(booking.id)}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 transition-all text-sm font-semibold"
+            >
+              <XCircle size={16} /> Refuser
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -161,7 +191,7 @@ export default function AdminPage() {
   const [scheduleDate, setScheduleDate] = useState(new Date());
   const [search, setSearch]     = useState("");
   const [selected, setSelected] = useState<AdminBooking | null>(null);
-  const [statusFilter, setStatusFilter] = useState<"all" | "confirmed" | "pending" | "cancelled">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "confirmed" | "pending" | "cancelled" | "awaiting_approval">("all");
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
   const [loading, setLoading]   = useState(true);
 
@@ -186,8 +216,20 @@ export default function AdminPage() {
     fetchBookings();
   }, [authed]);
 
+  const handleApprove = async (id: string) => {
+    await supabase.from("bookings").update({ status: "confirmed" }).eq("id", id);
+    setBookings((prev) => prev.map((b) => b.id === id ? { ...b, status: "confirmed" } : b));
+    setSelected(null);
+  };
+
+  const handleReject = async (id: string) => {
+    await supabase.from("bookings").update({ status: "cancelled" }).eq("id", id);
+    setBookings((prev) => prev.map((b) => b.id === id ? { ...b, status: "cancelled" } : b));
+    setSelected(null);
+  };
+
   const confirmed  = bookings.filter(b => b.status === "confirmed");
-  const pending    = bookings.filter(b => b.status === "pending");
+  const pending    = bookings.filter(b => b.status === "pending" || b.status === "awaiting_approval");
   const revenue    = totalRevenue(bookings);
   const todayStr   = format(new Date(), "yyyy-MM-dd");
   const todayCount = bookings.filter(b => b.date === todayStr && b.status !== "cancelled").length;
@@ -352,12 +394,12 @@ export default function AdminPage() {
                       className="w-full pl-9 pr-4 py-2.5 bg-white/[0.03] border border-white/10 rounded-lg text-white text-sm placeholder-[#3d5a90] focus:outline-none focus:border-[#F97316]/40 transition-all" />
                   </div>
                   <div className="flex gap-2">
-                    {(["all","confirmed","pending","cancelled"] as const).map(s => (
+                    {(["all","confirmed","pending","awaiting_approval","cancelled"] as const).map(s => (
                       <button key={s} onClick={() => setStatusFilter(s)}
                         className={`px-3 py-2 rounded-lg text-xs capitalize transition-all ${
                           statusFilter === s ? "bg-[#F97316] text-white" : "border border-white/10 text-[#6080b8] hover:text-white"
                         }`}>
-                        {s === "all" ? "Tout" : s === "confirmed" ? "Confirmée" : s === "pending" ? "En attente" : "Annulée"}
+                        {s === "all" ? "Tout" : s === "confirmed" ? "Confirmée" : s === "pending" ? "En attente" : s === "awaiting_approval" ? "Approbation" : "Annulée"}
                       </button>
                     ))}
                   </div>
@@ -419,7 +461,7 @@ export default function AdminPage() {
           </>
         )}
       </div>
-      {selected && <BookingModal booking={selected} onClose={() => setSelected(null)} />}
+      {selected && <BookingModal booking={selected} onClose={() => setSelected(null)} onApprove={handleApprove} onReject={handleReject} />}
     </div>
   );
 }

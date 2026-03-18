@@ -13,6 +13,7 @@ import {
   Lock,
   Star,
   Zap,
+  AlertTriangle,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -31,9 +32,12 @@ export default function Booking() {
     details,
     isSubmitting,
     isComplete,
+    packRequiresApproval,
     selectedPitchConfig,
     selectedPackConfig,
     timeSlots,
+    totalHours,
+    totalPrice,
     depositAmount,
     canAdvance,
     pitches,
@@ -69,16 +73,36 @@ export default function Booking() {
     return (
       <section ref={sectionRef} id="booking" className="py-32 px-6">
         <div className="max-w-lg mx-auto text-center glass-card p-14">
-          <div className="w-20 h-20 rounded-full bg-[#F97316]/10 border border-[#F97316]/30 flex items-center justify-center mx-auto mb-8">
-            <CheckCircle2 size={40} className="text-[#F97316]" />
-          </div>
-          <h2 className="text-white text-5xl mb-4" style={{ fontFamily: "var(--font-display)" }}>
-            RÉSERVATION CONFIRMÉE
-          </h2>
-          <p className="text-[#6080b8] mb-3">
-            Confirmation envoyée à <strong className="text-white">{details.email}</strong>
-          </p>
-          {selectedPitchConfig && state.selectedDate && state.selectedSlot && (
+          {packRequiresApproval ? (
+            <>
+              <div className="w-20 h-20 rounded-full bg-[#FBBF24]/10 border border-[#FBBF24]/30 flex items-center justify-center mx-auto mb-8">
+                <AlertTriangle size={40} className="text-[#FBBF24]" />
+              </div>
+              <h2 className="text-white text-4xl mb-4" style={{ fontFamily: "var(--font-display)" }}>
+                EN ATTENTE D&apos;APPROBATION
+              </h2>
+              <p className="text-[#6080b8] mb-3">
+                Votre réservation avec le forfait <strong className="text-[#FBBF24]">{selectedPackConfig?.name}</strong> nécessite une approbation.
+              </p>
+              <p className="text-[#3d5a90] text-sm mb-6">
+                Vous recevrez un courriel à <strong className="text-white">{details.email}</strong> une fois votre demande approuvée par notre équipe.
+                Le paiement sera requis après approbation.
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="w-20 h-20 rounded-full bg-[#F97316]/10 border border-[#F97316]/30 flex items-center justify-center mx-auto mb-8">
+                <CheckCircle2 size={40} className="text-[#F97316]" />
+              </div>
+              <h2 className="text-white text-5xl mb-4" style={{ fontFamily: "var(--font-display)" }}>
+                RÉSERVATION CONFIRMÉE
+              </h2>
+              <p className="text-[#6080b8] mb-3">
+                Confirmation envoyée à <strong className="text-white">{details.email}</strong>
+              </p>
+            </>
+          )}
+          {selectedPitchConfig && state.selectedDate && state.selectedSlots.length > 0 && (
             <div className="glass-card p-5 mt-8 mb-8 text-left space-y-3">
               <div className="flex justify-between">
                 <span className="text-[#3d5a90] text-sm">Terrain</span>
@@ -91,13 +115,17 @@ export default function Booking() {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[#3d5a90] text-sm">Heure</span>
-                <span className="text-white text-sm">{state.selectedSlot.label}</span>
+                <span className="text-[#3d5a90] text-sm">Heures</span>
+                <span className="text-white text-sm">
+                  {state.selectedSlots.map(s => s.label).join(", ")} ({totalHours}h)
+                </span>
               </div>
-              <div className="flex justify-between border-t border-white/10 pt-3">
-                <span className="text-[#3d5a90] text-sm">Dépôt payé</span>
-                <span className="text-[#F97316] font-semibold">{depositAmount}$</span>
-              </div>
+              {!packRequiresApproval && (
+                <div className="flex justify-between border-t border-white/10 pt-3">
+                  <span className="text-[#3d5a90] text-sm">Dépôt payé</span>
+                  <span className="text-[#F97316] font-semibold">{depositAmount}$</span>
+                </div>
+              )}
             </div>
           )}
           <button onClick={reset} className="btn-ghost w-full justify-center">
@@ -208,12 +236,12 @@ export default function Booking() {
             </div>
           )}
 
-          {/* Step 2: Date & Time */}
+          {/* Step 2: Date & Time — multi-hour selection */}
           {state.step === 2 && (
             <div className="grid md:grid-cols-2 gap-8">
               <BookingCalendar selected={state.selectedDate} onSelect={selectDate} />
               <div className="glass-card p-6">
-                <div className="flex items-center gap-2 mb-6">
+                <div className="flex items-center gap-2 mb-4">
                   <Clock size={16} className="text-[#F97316]" />
                   <h3 className="text-white text-lg tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
                     {state.selectedDate
@@ -221,6 +249,9 @@ export default function Booking() {
                       : "CHOISIR UNE DATE"}
                   </h3>
                 </div>
+                <p className="text-[#3d5a90] text-xs mb-4">
+                  Cliquez sur plusieurs créneaux consécutifs pour réserver plusieurs heures.
+                </p>
                 {!state.selectedDate ? (
                   <p className="text-[#3d5a90] text-sm text-center py-16">
                     Choisissez une date pour voir les créneaux disponibles
@@ -228,7 +259,7 @@ export default function Booking() {
                 ) : (
                   <div className="grid grid-cols-2 gap-2 max-h-80 overflow-y-auto no-scrollbar pr-1">
                     {timeSlots.map((slot) => {
-                      const isSelected = state.selectedSlot?.id === slot.id;
+                      const isSelected = state.selectedSlots.some((s) => s.id === slot.id);
                       return (
                         <button key={slot.id} disabled={!slot.available}
                           onClick={() => slot.available && selectSlot(slot)}
@@ -244,14 +275,25 @@ export default function Booking() {
                     })}
                   </div>
                 )}
-                {state.selectedSlot && (
-                  <div className="mt-6 pt-5 border-t border-white/10 flex items-center justify-between">
-                    <span className="text-[#6080b8] text-sm">Sélectionné</span>
-                    <div className="text-right">
-                      <div className="text-[#F97316] text-lg" style={{ fontFamily: "var(--font-display)" }}>
-                        {state.selectedSlot.label}
-                      </div>
-                      <div className="text-[#3d5a90] text-xs">{state.selectedSlot.price}$ / hr</div>
+                {state.selectedSlots.length > 0 && (
+                  <div className="mt-6 pt-5 border-t border-white/10">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[#6080b8] text-sm">Sélectionné</span>
+                      <span className="text-[#F97316] text-sm font-semibold" style={{ fontFamily: "var(--font-display)" }}>
+                        {totalHours} heure{totalHours > 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {state.selectedSlots.map((s) => (
+                        <span key={s.id} className="bg-[#F97316]/20 text-[#F97316] text-xs px-2 py-1 rounded-md"
+                          style={{ fontFamily: "var(--font-mono)" }}>
+                          {s.label}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-[#3d5a90]">Total</span>
+                      <span className="text-white font-semibold">{totalPrice}$ ({depositAmount}$ dépôt)</span>
                     </div>
                   </div>
                 )}
@@ -300,7 +342,11 @@ export default function Booking() {
                 <h3 className="text-white text-xl mb-2 tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
                   AJOUTER UN FORFAIT
                 </h3>
-                <p className="text-[#3d5a90] text-sm mb-5">Optionnel — améliorez votre expérience avec un pack.</p>
+                <p className="text-[#3d5a90] text-sm mb-2">Optionnel — améliorez votre expérience avec un pack.</p>
+                <p className="text-[#FBBF24] text-xs mb-5 flex items-center gap-1.5">
+                  <AlertTriangle size={12} />
+                  Les forfaits nécessitent une approbation avant le paiement.
+                </p>
                 <div className="grid grid-cols-3 gap-3">
                   {packs.map((pack) => {
                     const selected = state.selectedPack === pack.id;
@@ -347,7 +393,9 @@ export default function Booking() {
                   {[
                     { label: "Terrain", value: selectedPitchConfig?.name ?? "—" },
                     { label: "Date",    value: state.selectedDate ? format(state.selectedDate, "EEE dd MMM yyyy", { locale: fr }) : "—" },
-                    { label: "Heure",   value: state.selectedSlot?.label ?? "—" },
+                    { label: "Heures",  value: state.selectedSlots.length > 0
+                        ? `${state.selectedSlots.map(s => s.label).join(", ")} (${totalHours}h)`
+                        : "—" },
                     { label: "Joueur",  value: details.name },
                     ...(selectedPackConfig ? [{ label: "Forfait", value: selectedPackConfig.name }] : []),
                   ].map(({ label, value }) => (
@@ -357,56 +405,65 @@ export default function Booking() {
                     </div>
                   ))}
                   <div className="pt-4 mt-4 border-t border-white/10 flex justify-between items-baseline">
-                    <span className="text-[#6080b8]">Prix total</span>
-                    <span className="text-white">{selectedPitchConfig?.price ?? 0}$</span>
+                    <span className="text-[#6080b8]">Prix total ({totalHours}h)</span>
+                    <span className="text-white">{totalPrice}$</span>
                   </div>
-                  <div className="flex justify-between items-baseline">
-                    <span className="text-[#F97316] font-medium">Dépôt (50%)</span>
-                    <span className="text-[#F97316] text-xl font-semibold">{depositAmount}$</span>
-                  </div>
+                  {state.selectedPack ? (
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-[#FBBF24] font-medium">Approbation requise</span>
+                      <span className="text-[#FBBF24] text-sm">Paiement après approbation</span>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-[#F97316] font-medium">Dépôt (50%)</span>
+                      <span className="text-[#F97316] text-xl font-semibold">{depositAmount}$</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              <div className="glass-card p-6">
-                <div className="flex items-center gap-2 mb-5">
-                  <CreditCard size={18} className="text-[#F97316]" />
-                  <h3 className="text-white text-xl tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
-                    PAIEMENT SÉCURISÉ
-                  </h3>
-                  <div className="ml-auto flex items-center gap-1 text-[#3d5a90] text-xs">
-                    <Lock size={11} />
-                    <span>Chiffré SSL 256-bit</span>
+              {!state.selectedPack && (
+                <div className="glass-card p-6">
+                  <div className="flex items-center gap-2 mb-5">
+                    <CreditCard size={18} className="text-[#F97316]" />
+                    <h3 className="text-white text-xl tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
+                      PAIEMENT SÉCURISÉ
+                    </h3>
+                    <div className="ml-auto flex items-center gap-1 text-[#3d5a90] text-xs">
+                      <Lock size={11} />
+                      <span>Chiffré SSL 256-bit</span>
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <label className="section-label block mb-2">Numéro de carte</label>
-                    <div className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-[#2a3f6a] text-sm flex justify-between items-center">
-                      <span>&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull;</span>
-                      <div className="flex gap-2 items-center">
-                        <span className="text-[#3d5a90] text-[0.6rem] tracking-wider uppercase">Visa</span>
-                        <span className="text-[#3d5a90] text-[0.6rem] tracking-wider uppercase">MC</span>
-                        <span className="text-[#3d5a90] text-[0.6rem] tracking-wider uppercase">Amex</span>
-                        <span className="text-[#3d5a90] text-[0.6rem] tracking-wider uppercase">Apple Pay</span>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="section-label block mb-2">Numéro de carte</label>
+                      <div className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-[#2a3f6a] text-sm flex justify-between items-center">
+                        <span>&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull;</span>
+                        <div className="flex gap-2 items-center">
+                          <span className="text-[#3d5a90] text-[0.6rem] tracking-wider uppercase">Visa</span>
+                          <span className="text-[#3d5a90] text-[0.6rem] tracking-wider uppercase">MC</span>
+                          <span className="text-[#3d5a90] text-[0.6rem] tracking-wider uppercase">Amex</span>
+                          <span className="text-[#3d5a90] text-[0.6rem] tracking-wider uppercase">Apple Pay</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="section-label block mb-2">Expiration</label>
+                        <div className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-[#2a3f6a] text-sm">MM / AA</div>
+                      </div>
+                      <div>
+                        <label className="section-label block mb-2">CVC</label>
+                        <div className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-[#2a3f6a] text-sm">&bull;&bull;&bull;</div>
                       </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="section-label block mb-2">Expiration</label>
-                      <div className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-[#2a3f6a] text-sm">MM / AA</div>
-                    </div>
-                    <div>
-                      <label className="section-label block mb-2">CVC</label>
-                      <div className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-4 py-3 text-[#2a3f6a] text-sm">&bull;&bull;&bull;</div>
-                    </div>
-                  </div>
+                  <p className="text-[#2a3f6a] text-xs mt-5 flex items-center gap-1">
+                    <Zap size={12} className="text-[#F97316]/50" />
+                    Propulsé par Stripe. Visa, Mastercard, Amex et Apple Pay acceptés. Vos données ne sont jamais stockées sur nos serveurs.
+                  </p>
                 </div>
-                <p className="text-[#2a3f6a] text-xs mt-5 flex items-center gap-1">
-                  <Zap size={12} className="text-[#F97316]/50" />
-                  Propulsé par Stripe. Visa, Mastercard, Amex et Apple Pay acceptés. Vos données ne sont jamais stockées sur nos serveurs.
-                </p>
-              </div>
+              )}
 
               <div className="flex items-center justify-center gap-1 text-[#F97316]">
                 {[1,2,3,4,5].map((s) => <Star key={s} size={14} fill="#F97316" />)}
@@ -441,6 +498,11 @@ export default function Booking() {
                     </svg>
                     Traitement…
                   </span>
+                ) : state.selectedPack ? (
+                  <>
+                    <Clock size={15} />
+                    Soumettre pour approbation
+                  </>
                 ) : (
                   <>
                     <Lock size={15} />

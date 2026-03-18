@@ -15,6 +15,7 @@ const INITIAL_STATE: BookingState = {
   selectedDate: null,
   selectedPitch: null,
   selectedSlot: null,
+  selectedSlots: [],
   selectedPack: null,
   playerCount: 10,
   step: 1,
@@ -34,6 +35,7 @@ export function useBooking() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [bookedHours, setBookedHours] = useState<Set<string>>(new Set());
+  const [packRequiresApproval, setPackRequiresApproval] = useState(false);
 
   const selectedPitchConfig = useMemo(
     () => PITCHES.find((p) => p.id === state.selectedPitch) ?? null,
@@ -69,31 +71,74 @@ export function useBooking() {
     return generateTimeSlots(state.selectedDate, state.selectedPitch, selectedPitchConfig.price, bookedHours);
   }, [state.selectedDate, state.selectedPitch, selectedPitchConfig, bookedHours]);
 
-  const depositAmount = useMemo(() => {
+  const totalHours = state.selectedSlots.length || (state.selectedSlot ? 1 : 0);
+
+  const totalPrice = useMemo(() => {
     if (!selectedPitchConfig) return 0;
-    return Math.round(selectedPitchConfig.price * 0.5);
-  }, [selectedPitchConfig]);
+    return selectedPitchConfig.price * totalHours;
+  }, [selectedPitchConfig, totalHours]);
+
+  const depositAmount = useMemo(() => {
+    return Math.round(totalPrice * 0.5);
+  }, [totalPrice]);
 
   const canAdvance = useMemo(() => {
     switch (state.step) {
       case 1: return !!state.selectedPitch;
-      case 2: return !!state.selectedDate && !!state.selectedSlot;
+      case 2: return !!state.selectedDate && state.selectedSlots.length > 0;
       case 3: return !!details.name && !!details.email && !!details.phone;
       case 4: return true;
       default: return false;
     }
-  }, [state.step, state.selectedPitch, state.selectedDate, state.selectedSlot, details]);
+  }, [state.step, state.selectedPitch, state.selectedDate, state.selectedSlots.length, details]);
 
   const selectPitch = useCallback((pitchId: PitchType) => {
-    setState((s) => ({ ...s, selectedPitch: pitchId, selectedSlot: null }));
+    setState((s) => ({ ...s, selectedPitch: pitchId, selectedSlot: null, selectedSlots: [] }));
   }, []);
 
   const selectDate = useCallback((date: Date) => {
-    setState((s) => ({ ...s, selectedDate: date, selectedSlot: null }));
+    setState((s) => ({ ...s, selectedDate: date, selectedSlot: null, selectedSlots: [] }));
   }, []);
 
+  // Toggle a slot: add or remove from selectedSlots. Must be consecutive.
   const selectSlot = useCallback((slot: TimeSlot) => {
-    setState((s) => ({ ...s, selectedSlot: slot }));
+    setState((s) => {
+      const existing = s.selectedSlots.find((sl) => sl.id === slot.id);
+      if (existing) {
+        // Remove this slot — only allow if it's at the start or end (keep consecutive)
+        const filtered = s.selectedSlots.filter((sl) => sl.id !== slot.id);
+        // Check if remaining are still consecutive
+        if (filtered.length <= 1) {
+          return { ...s, selectedSlots: filtered, selectedSlot: filtered[0] ?? null };
+        }
+        const sorted = [...filtered].sort((a, b) => a.time.localeCompare(b.time));
+        let consecutive = true;
+        for (let i = 1; i < sorted.length; i++) {
+          const prevHr = parseInt(sorted[i - 1].time.split(":")[0], 10);
+          const curHr = parseInt(sorted[i].time.split(":")[0], 10);
+          if (curHr - prevHr !== 1) { consecutive = false; break; }
+        }
+        if (!consecutive) return s; // can't remove from middle
+        return { ...s, selectedSlots: sorted, selectedSlot: sorted[0] };
+      }
+
+      // Adding a new slot — check it's consecutive with existing
+      if (s.selectedSlots.length === 0) {
+        return { ...s, selectedSlots: [slot], selectedSlot: slot };
+      }
+
+      const all = [...s.selectedSlots, slot].sort((a, b) => a.time.localeCompare(b.time));
+      // Verify consecutiveness
+      for (let i = 1; i < all.length; i++) {
+        const prevHr = parseInt(all[i - 1].time.split(":")[0], 10);
+        const curHr = parseInt(all[i].time.split(":")[0], 10);
+        if (curHr - prevHr !== 1) {
+          // Not consecutive — replace selection with just this slot
+          return { ...s, selectedSlots: [slot], selectedSlot: slot };
+        }
+      }
+      return { ...s, selectedSlots: all, selectedSlot: all[0] };
+    });
   }, []);
 
   const selectPack = useCallback((packId: string | null) => {
@@ -133,30 +178,44 @@ export function useBooking() {
     setState(INITIAL_STATE);
     setDetails(INITIAL_DETAILS);
     setIsComplete(false);
+    setPackRequiresApproval(false);
   }, []);
 
   const submitBooking = useCallback(async () => {
-    if (!selectedPitchConfig || !state.selectedDate || !state.selectedSlot) return;
+    if (!selectedPitchConfig || !state.selectedDate || state.selectedSlots.length === 0) return;
     setIsSubmitting(true);
     try {
       const dateStr = format(state.selectedDate, "yyyy-MM-dd");
-      const { error } = await supabase.from("bookings").insert({
-        date: dateStr,
-        time: state.selectedSlot.time,
-        duration: 60,
-        player_name: details.name,
-        team_name: details.teamName || null,
-        email: details.email,
-        phone: details.phone,
-        players: state.playerCount,
-        price: selectedPitchConfig.price,
-        deposit_paid: depositAmount,
-        status: "pending",
-        notes: details.notes || null,
-      });
+      const hasPack = !!state.selectedPack;
+      // If a pack is selected, booking goes to "awaiting_approval" instead of "pending"
+      const bookingStatus = hasPack ? "awaiting_approval" : "pending";
 
-      if (error) {
-        console.error("Booking error:", error);
+      // Insert one booking per selected hour
+      for (const slot of state.selectedSlots) {
+        const { error } = await supabase.from("bookings").insert({
+          date: dateStr,
+          time: slot.time,
+          duration: 60,
+          player_name: details.name,
+          team_name: details.teamName || null,
+          email: details.email,
+          phone: details.phone,
+          players: state.playerCount,
+          price: selectedPitchConfig.price,
+          deposit_paid: hasPack ? 0 : Math.round(selectedPitchConfig.price * 0.5),
+          status: bookingStatus,
+          notes: details.notes
+            ? `${details.notes}${hasPack ? ` | Pack: ${state.selectedPack}` : ""}`
+            : hasPack ? `Pack: ${state.selectedPack}` : null,
+        });
+
+        if (error) {
+          console.error("Booking error:", error);
+        }
+      }
+
+      if (hasPack) {
+        setPackRequiresApproval(true);
       }
       setIsComplete(true);
     } catch (err) {
@@ -165,16 +224,19 @@ export function useBooking() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [selectedPitchConfig, state.selectedDate, state.selectedSlot, state.playerCount, details, depositAmount]);
+  }, [selectedPitchConfig, state.selectedDate, state.selectedSlots, state.selectedPack, state.playerCount, details]);
 
   return {
     state,
     details,
     isSubmitting,
     isComplete,
+    packRequiresApproval,
     selectedPitchConfig,
     selectedPackConfig,
     timeSlots,
+    totalHours,
+    totalPrice,
     depositAmount,
     canAdvance,
     pitches: PITCHES,
