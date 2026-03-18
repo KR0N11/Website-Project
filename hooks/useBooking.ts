@@ -1,7 +1,7 @@
 "use client";
 import { useState, useCallback, useMemo, useEffect } from "react";
-import type { BookingState, PitchType, TimeSlot, BookingDetails, PackOption, Duration } from "@/types/booking";
-import { PITCHES, DURATIONS, generateTimeSlots, getPrice, getPriceCategory, getCategoryLabel } from "@/lib/pitches";
+import type { BookingState, PitchType, TimeSlot, BookingDetails, PackOption } from "@/types/booking";
+import { PITCHES, SLOT_TIMES, MAX_SLOTS, generateTimeSlots, getPriceForDuration, getCategoryLabel } from "@/lib/pitches";
 import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 
@@ -17,7 +17,6 @@ const INITIAL_STATE: BookingState = {
   selectedSlot: null,
   selectedSlots: [],
   selectedPack: null,
-  selectedDuration: 60,
   playerCount: 10,
   step: 1,
 };
@@ -29,6 +28,10 @@ const INITIAL_DETAILS: BookingDetails = {
   teamName: "",
   notes: "",
 };
+
+function slotTimeIndex(time: string): number {
+  return SLOT_TIMES.indexOf(time);
+}
 
 export function useBooking() {
   const [state, setState] = useState<BookingState>(INITIAL_STATE);
@@ -69,34 +72,56 @@ export function useBooking() {
 
   const timeSlots = useMemo(() => {
     if (!state.selectedDate || !state.selectedPitch) return [];
-    return generateTimeSlots(state.selectedDate, state.selectedPitch, state.selectedDuration, bookedSlots);
-  }, [state.selectedDate, state.selectedPitch, state.selectedDuration, bookedSlots]);
+    return generateTimeSlots(state.selectedDate, state.selectedPitch, bookedSlots);
+  }, [state.selectedDate, state.selectedPitch, bookedSlots]);
 
-  // Price is determined by duration + category of selected slot (or first available)
+  // Duration in minutes based on number of selected slots
+  const totalDuration = state.selectedSlots.length * 30;
+
+  // Price based on total duration and first slot's category
   const totalPrice = useMemo(() => {
-    if (!state.selectedSlot || !state.selectedDate) return 0;
-    return getPrice(state.selectedDuration, state.selectedSlot.category);
-  }, [state.selectedSlot, state.selectedDate, state.selectedDuration]);
+    if (state.selectedSlots.length === 0) return 0;
+    const category = state.selectedSlots[0].category;
+    return getPriceForDuration(totalDuration, category);
+  }, [state.selectedSlots, totalDuration]);
 
   const depositAmount = useMemo(() => {
     return Math.round(totalPrice * 0.5);
   }, [totalPrice]);
 
-  // Price category label for display
   const priceCategory = useMemo(() => {
-    if (!state.selectedSlot) return "";
-    return getCategoryLabel(state.selectedSlot.category);
-  }, [state.selectedSlot]);
+    if (state.selectedSlots.length === 0) return "";
+    return getCategoryLabel(state.selectedSlots[0].category);
+  }, [state.selectedSlots]);
+
+  // End time label
+  const endTimeLabel = useMemo(() => {
+    if (state.selectedSlots.length === 0) return "";
+    const sorted = [...state.selectedSlots].sort((a, b) => a.time.localeCompare(b.time));
+    const last = sorted[sorted.length - 1];
+    const [hr, min] = last.time.split(":").map(Number);
+    const totalMin = hr * 60 + min + 30;
+    const endHr = Math.floor(totalMin / 60);
+    const endMin = totalMin % 60;
+    return `${endHr}h${String(endMin).padStart(2, "0")}`;
+  }, [state.selectedSlots]);
+
+  // Start time label
+  const startTimeLabel = useMemo(() => {
+    if (state.selectedSlots.length === 0) return "";
+    const sorted = [...state.selectedSlots].sort((a, b) => a.time.localeCompare(b.time));
+    return sorted[0].label;
+  }, [state.selectedSlots]);
 
   const canAdvance = useMemo(() => {
     switch (state.step) {
       case 1: return !!state.selectedPitch;
-      case 2: return !!state.selectedDate && !!state.selectedSlot;
+      case 2: return !!state.selectedDate && state.selectedSlots.length > 0;
       case 3: return !!details.name && !!details.email && !!details.phone;
       case 4: return true;
       default: return false;
     }
-  }, [state.step, state.selectedPitch, state.selectedDate, state.selectedSlot, details]);
+  }, [state.step, state.selectedPitch, state.selectedDate, state.selectedSlots.length, details]);
 
   const selectPitch = useCallback((pitchId: PitchType) => {
     setState((s) => ({ ...s, selectedPitch: pitchId, selectedSlot: null, selectedSlots: [] }));
@@ -106,17 +131,46 @@ export function useBooking() {
     setState((s) => ({ ...s, selectedDate: date, selectedSlot: null, selectedSlots: [] }));
   }, []);
 
-  const selectDuration = useCallback((duration: Duration) => {
-    setState((s) => ({ ...s, selectedDuration: duration, selectedSlot: null, selectedSlots: [] }));
-  }, []);
-
-  // Single start-time selection (duration determines the block)
+  // Multi-slot selection: consecutive 30-min slots, max MAX_SLOTS
   const selectSlot = useCallback((slot: TimeSlot) => {
     setState((s) => {
-      if (s.selectedSlot?.id === slot.id) {
-        return { ...s, selectedSlot: null, selectedSlots: [] };
+      const slotIdx = slotTimeIndex(slot.time);
+
+      // Already selected? Remove if at edge
+      const idx = s.selectedSlots.findIndex((sl) => sl.id === slot.id);
+      if (idx !== -1) {
+        if (s.selectedSlots.length === 1) {
+          return { ...s, selectedSlot: null, selectedSlots: [] };
+        }
+        if (idx === 0 || idx === s.selectedSlots.length - 1) {
+          const updated = s.selectedSlots.filter((_, i) => i !== idx);
+          return { ...s, selectedSlots: updated, selectedSlot: updated[0] };
+        }
+        return s; // can't remove from middle
       }
-      return { ...s, selectedSlot: slot, selectedSlots: [slot] };
+
+      // No slots yet — start fresh
+      if (s.selectedSlots.length === 0) {
+        return { ...s, selectedSlots: [slot], selectedSlot: slot };
+      }
+
+      // Max slots reached
+      if (s.selectedSlots.length >= MAX_SLOTS) {
+        return { ...s, selectedSlots: [slot], selectedSlot: slot };
+      }
+
+      // Check if adjacent to current range
+      const sorted = [...s.selectedSlots].sort((a, b) => a.time.localeCompare(b.time));
+      const firstIdx = slotTimeIndex(sorted[0].time);
+      const lastIdx = slotTimeIndex(sorted[sorted.length - 1].time);
+
+      if (slotIdx === lastIdx + 1 || slotIdx === firstIdx - 1) {
+        const updated = [...s.selectedSlots, slot].sort((a, b) => a.time.localeCompare(b.time));
+        return { ...s, selectedSlots: updated, selectedSlot: updated[0] };
+      }
+
+      // Not adjacent — start new selection
+      return { ...s, selectedSlots: [slot], selectedSlot: slot };
     });
   }, []);
 
@@ -160,28 +214,19 @@ export function useBooking() {
     setPackRequiresApproval(false);
   }, []);
 
-  // Format end time from start time + duration
-  const endTimeLabel = useMemo(() => {
-    if (!state.selectedSlot) return "";
-    const [hr, min] = state.selectedSlot.time.split(":").map(Number);
-    const totalMin = hr * 60 + min + state.selectedDuration;
-    const endHr = Math.floor(totalMin / 60);
-    const endMin = totalMin % 60;
-    return `${endHr}h${String(endMin).padStart(2, "0")}`;
-  }, [state.selectedSlot, state.selectedDuration]);
-
   const submitBooking = useCallback(async () => {
-    if (!selectedPitchConfig || !state.selectedDate || !state.selectedSlot) return;
+    if (!selectedPitchConfig || !state.selectedDate || state.selectedSlots.length === 0) return;
     setIsSubmitting(true);
     try {
       const dateStr = format(state.selectedDate, "yyyy-MM-dd");
       const hasPack = !!state.selectedPack;
       const bookingStatus = hasPack ? "awaiting_approval" : "pending";
+      const sorted = [...state.selectedSlots].sort((a, b) => a.time.localeCompare(b.time));
 
       const { error } = await supabase.from("bookings").insert({
         date: dateStr,
-        time: state.selectedSlot.time,
-        duration: state.selectedDuration,
+        time: sorted[0].time,
+        duration: totalDuration,
         player_name: details.name,
         team_name: details.teamName || null,
         email: details.email,
@@ -209,7 +254,7 @@ export function useBooking() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [selectedPitchConfig, state.selectedDate, state.selectedSlot, state.selectedDuration, state.selectedPack, state.playerCount, details, totalPrice, depositAmount]);
+  }, [selectedPitchConfig, state.selectedDate, state.selectedSlots, state.selectedPack, state.playerCount, details, totalPrice, depositAmount, totalDuration]);
 
   return {
     state,
@@ -220,17 +265,17 @@ export function useBooking() {
     selectedPitchConfig,
     selectedPackConfig,
     timeSlots,
+    totalDuration,
     totalPrice,
     depositAmount,
     priceCategory,
+    startTimeLabel,
     endTimeLabel,
     canAdvance,
     pitches: PITCHES,
     packs: PACKS,
-    durations: DURATIONS,
     selectPitch,
     selectDate,
-    selectDuration,
     selectSlot,
     selectPack,
     setPlayerCount,

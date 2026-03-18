@@ -14,13 +14,12 @@ import {
   Star,
   Zap,
   AlertTriangle,
-  Timer,
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useBooking } from "@/hooks/useBooking";
 import BookingCalendar from "@/components/BookingCalendar";
-import type { PitchType, Duration } from "@/types/booking";
+import type { PitchType } from "@/types/booking";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -37,17 +36,17 @@ export default function Booking() {
     selectedPitchConfig,
     selectedPackConfig,
     timeSlots,
+    totalDuration,
     totalPrice,
     depositAmount,
     priceCategory,
+    startTimeLabel,
     endTimeLabel,
     canAdvance,
     pitches,
     packs,
-    durations,
     selectPitch,
     selectDate,
-    selectDuration,
     selectSlot,
     selectPack,
     updateDetail,
@@ -89,8 +88,7 @@ export default function Booking() {
                 Votre réservation avec le forfait <strong className="text-[#FBBF24]">{selectedPackConfig?.name}</strong> nécessite une approbation.
               </p>
               <p className="text-[#3d5a90] text-sm mb-6">
-                Vous recevrez un courriel à <strong className="text-white">{details.email}</strong> une fois votre demande approuvée par notre équipe.
-                Le paiement sera requis après approbation.
+                Vous recevrez un courriel à <strong className="text-white">{details.email}</strong> une fois votre demande approuvée.
               </p>
             </>
           ) : (
@@ -106,7 +104,7 @@ export default function Booking() {
               </p>
             </>
           )}
-          {selectedPitchConfig && state.selectedDate && state.selectedSlot && (
+          {selectedPitchConfig && state.selectedDate && state.selectedSlots.length > 0 && (
             <div className="glass-card p-5 mt-8 mb-8 text-left space-y-3">
               <div className="flex justify-between">
                 <span className="text-[#3d5a90] text-sm">Terrain</span>
@@ -121,12 +119,8 @@ export default function Booking() {
               <div className="flex justify-between">
                 <span className="text-[#3d5a90] text-sm">Créneau</span>
                 <span className="text-white text-sm">
-                  {state.selectedSlot.label} — {endTimeLabel} ({state.selectedDuration} min)
+                  {startTimeLabel} — {endTimeLabel} ({totalDuration} min)
                 </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#3d5a90] text-sm">Tarif</span>
-                <span className="text-white text-sm">{priceCategory}</span>
               </div>
               {!packRequiresApproval && (
                 <div className="flex justify-between border-t border-white/10 pt-3">
@@ -161,7 +155,7 @@ export default function Booking() {
             </span>
           </h2>
           <p className="text-[#3d5a90] max-w-md mx-auto">
-            Sélectionnez votre terrain, choisissez votre créneau et réservez en moins de 2 minutes. Dépôt de 50% requis.
+            Sélectionnez votre terrain, choisissez votre créneau et réservez en moins de 2 minutes.
           </p>
         </div>
 
@@ -225,17 +219,10 @@ export default function Booking() {
                         {pitch.name}
                       </h3>
                       <p className="text-[#3d5a90] text-sm mb-4 leading-relaxed">{pitch.description}</p>
-                      <div className="flex flex-wrap gap-2 mb-5">
+                      <div className="flex flex-wrap gap-2">
                         {pitch.features.map((f) => (
                           <span key={f} className="text-[#6080b8] text-xs px-2 py-0.5 rounded border border-white/10">{f}</span>
                         ))}
-                      </div>
-                      <div className="flex items-baseline justify-between">
-                        <div>
-                          <span className="text-[#F97316] text-2xl font-semibold">dès 55$</span>
-                          <span className="text-[#3d5a90] text-sm"> / 30 min</span>
-                        </div>
-                        <span className="text-[#3d5a90] text-xs">{pitch.surface}</span>
                       </div>
                     </div>
                   </button>
@@ -244,89 +231,57 @@ export default function Booking() {
             </div>
           )}
 
-          {/* Step 2: Duration + Date & Time */}
+          {/* Step 2: Date & Time — select consecutive 30-min slots */}
           {state.step === 2 && (
-            <div className="space-y-6">
-              {/* Duration picker */}
-              <div className="glass-card p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <Timer size={16} className="text-[#F97316]" />
+            <div className="grid md:grid-cols-2 gap-8">
+              <BookingCalendar selected={state.selectedDate} onSelect={selectDate} />
+              <div className="glass-card p-6">
+                <div className="flex items-center gap-2 mb-5">
+                  <Clock size={16} className="text-[#F97316]" />
                   <h3 className="text-white text-lg tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
-                    DURÉE
+                    {state.selectedDate
+                      ? format(state.selectedDate, "EEE dd MMM", { locale: fr }).toUpperCase()
+                      : "CHOISIR UNE DATE"}
                   </h3>
                 </div>
-                <div className="grid grid-cols-4 gap-3">
-                  {durations.map((d) => {
-                    const selected = state.selectedDuration === d.value;
-                    return (
-                      <button key={d.value} onClick={() => selectDuration(d.value as Duration)}
-                        className={`px-4 py-3 rounded-lg text-sm transition-all duration-200 ${
-                          selected
-                            ? "bg-[#F97316] text-[#06080f] font-semibold shadow-[0_0_12px_rgba(249,115,22,0.35)]"
-                            : "border border-white/10 text-[#90a8d8] hover:border-white/30 hover:text-white"
-                        }`}>
-                        <span className="block text-lg font-bold" style={{ fontFamily: "var(--font-display)" }}>{d.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Date & Time */}
-              <div className="grid md:grid-cols-2 gap-8">
-                <BookingCalendar selected={state.selectedDate} onSelect={selectDate} />
-                <div className="glass-card p-6">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Clock size={16} className="text-[#F97316]" />
-                    <h3 className="text-white text-lg tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
-                      {state.selectedDate
-                        ? format(state.selectedDate, "EEE dd MMM", { locale: fr }).toUpperCase()
-                        : "CHOISIR UNE DATE"}
-                    </h3>
-                  </div>
-                  <p className="text-[#3d5a90] text-xs mb-4">
-                    Choisissez l&apos;heure de début pour votre réservation de {state.selectedDuration} min.
+                {!state.selectedDate ? (
+                  <p className="text-[#3d5a90] text-sm text-center py-16">
+                    Choisissez une date pour voir les créneaux
                   </p>
-                  {!state.selectedDate ? (
-                    <p className="text-[#3d5a90] text-sm text-center py-16">
-                      Choisissez une date pour voir les créneaux disponibles
+                ) : (
+                  <>
+                    <p className="text-[#3d5a90] text-xs mb-4">
+                      Sélectionnez jusqu&apos;à 4 créneaux consécutifs de 30 min.
                     </p>
-                  ) : (
-                    <div className="grid grid-cols-3 gap-2 max-h-72 overflow-y-auto no-scrollbar pr-1">
+                    <div className="grid grid-cols-4 gap-1.5 max-h-72 overflow-y-auto no-scrollbar pr-1">
                       {timeSlots.map((slot) => {
-                        const isSelected = state.selectedSlot?.id === slot.id;
+                        const isSelected = state.selectedSlots.some((s) => s.id === slot.id);
                         return (
                           <button key={slot.id} disabled={!slot.available}
                             onClick={() => slot.available && selectSlot(slot)}
-                            className={`px-3 py-2.5 rounded-lg text-sm transition-all duration-200 flex flex-col items-center ${
-                              !slot.available ? "opacity-30 cursor-not-allowed text-[#3d5a90]"
-                                : isSelected ? "bg-[#F97316] text-[#06080f] font-semibold shadow-[0_0_12px_rgba(249,115,22,0.35)]"
-                                : "border border-white/10 text-[#90a8d8] hover:border-white/30 hover:text-white"
+                            className={`py-2 rounded-md text-center transition-all duration-150 ${
+                              !slot.available
+                                ? "opacity-20 cursor-not-allowed text-[#3d5a90] bg-white/[0.02]"
+                                : isSelected
+                                  ? "bg-[#F97316] text-[#06080f] font-semibold shadow-[0_0_10px_rgba(249,115,22,0.3)]"
+                                  : "bg-white/[0.03] text-[#90a8d8] hover:bg-white/[0.08] hover:text-white"
                             }`}>
-                            <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.8rem" }}>{slot.label}</span>
-                            <span className={`text-[0.65rem] ${isSelected ? "text-[#06080f]/70" : "text-[#3d5a90]"}`}>{slot.price}$</span>
+                            <span className="text-xs" style={{ fontFamily: "var(--font-mono)" }}>{slot.label}</span>
                           </button>
                         );
                       })}
                     </div>
-                  )}
-                  {state.selectedSlot && (
-                    <div className="mt-6 pt-5 border-t border-white/10">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[#6080b8] text-sm">Créneau</span>
-                        <span className="text-[#F97316] text-lg" style={{ fontFamily: "var(--font-display)" }}>
-                          {state.selectedSlot.label} — {endTimeLabel}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#3d5a90] text-xs">
-                          {state.selectedDuration} min · {priceCategory}
-                        </span>
-                        <span className="text-white font-semibold text-sm">{totalPrice}$</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  </>
+                )}
+                {state.selectedSlots.length > 0 && (
+                  <div className="mt-5 pt-4 border-t border-white/10 flex items-center justify-between">
+                    <span className="text-white text-sm">
+                      {startTimeLabel} — {endTimeLabel}
+                      <span className="text-[#3d5a90] ml-2 text-xs">{totalDuration} min · {priceCategory}</span>
+                    </span>
+                    <span className="text-[#F97316] text-lg font-bold">{totalPrice}$</span>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -417,15 +372,13 @@ export default function Booking() {
 
               <div className="glass-card p-6">
                 <h3 className="text-white text-xl mb-5 tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
-                  RÉSUMÉ DE LA RÉSERVATION
+                  RÉSUMÉ
                 </h3>
                 <div className="space-y-3 text-sm">
                   {[
                     { label: "Terrain",  value: selectedPitchConfig?.name ?? "—" },
                     { label: "Date",     value: state.selectedDate ? format(state.selectedDate, "EEE dd MMM yyyy", { locale: fr }) : "—" },
-                    { label: "Créneau",  value: state.selectedSlot ? `${state.selectedSlot.label} — ${endTimeLabel}` : "—" },
-                    { label: "Durée",    value: `${state.selectedDuration} min` },
-                    { label: "Tarif",    value: priceCategory || "—" },
+                    { label: "Créneau",  value: state.selectedSlots.length > 0 ? `${startTimeLabel} — ${endTimeLabel} (${totalDuration} min)` : "—" },
                     { label: "Joueur",   value: details.name },
                     ...(selectedPackConfig ? [{ label: "Forfait", value: selectedPackConfig.name }] : []),
                   ].map(({ label, value }) => (
@@ -435,7 +388,7 @@ export default function Booking() {
                     </div>
                   ))}
                   <div className="pt-4 mt-4 border-t border-white/10 flex justify-between items-baseline">
-                    <span className="text-[#6080b8]">Prix total</span>
+                    <span className="text-[#6080b8]">Total</span>
                     <span className="text-white">{totalPrice}$</span>
                   </div>
                   {state.selectedPack ? (
@@ -461,7 +414,7 @@ export default function Booking() {
                     </h3>
                     <div className="ml-auto flex items-center gap-1 text-[#3d5a90] text-xs">
                       <Lock size={11} />
-                      <span>Chiffré SSL 256-bit</span>
+                      <span>SSL 256-bit</span>
                     </div>
                   </div>
                   <div className="space-y-4">
@@ -473,7 +426,6 @@ export default function Booking() {
                           <span className="text-[#3d5a90] text-[0.6rem] tracking-wider uppercase">Visa</span>
                           <span className="text-[#3d5a90] text-[0.6rem] tracking-wider uppercase">MC</span>
                           <span className="text-[#3d5a90] text-[0.6rem] tracking-wider uppercase">Amex</span>
-                          <span className="text-[#3d5a90] text-[0.6rem] tracking-wider uppercase">Apple Pay</span>
                         </div>
                       </div>
                     </div>
@@ -490,7 +442,7 @@ export default function Booking() {
                   </div>
                   <p className="text-[#2a3f6a] text-xs mt-5 flex items-center gap-1">
                     <Zap size={12} className="text-[#F97316]/50" />
-                    Propulsé par Stripe. Visa, Mastercard, Amex et Apple Pay acceptés. Vos données ne sont jamais stockées sur nos serveurs.
+                    Propulsé par Stripe. Vos données ne sont jamais stockées sur nos serveurs.
                   </p>
                 </div>
               )}

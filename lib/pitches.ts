@@ -1,4 +1,4 @@
-import type { PitchConfig, TimeSlot, Duration, PriceCategory } from "@/types/booking";
+import type { PitchConfig, TimeSlot, PriceCategory } from "@/types/booking";
 import { getDay } from "date-fns";
 
 export const PITCHES: PitchConfig[] = [
@@ -7,8 +7,7 @@ export const PITCHES: PitchConfig[] = [
     name: "Terrain 5v5",
     capacity: "5 contre 5",
     surface: "Gazon synthétique 3G",
-    description: "Terrain compact idéal pour les matchs rapides entre amis. Gazon premium, éclairage LED et vestiaires inclus.",
-    price: 95,
+    description: "Terrain compact idéal pour les matchs rapides entre amis.",
     image: "https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=800&q=80",
     features: ["Éclairage LED", "Gazon 3G", "Vestiaires", "10 joueurs max"],
   },
@@ -17,8 +16,7 @@ export const PITCHES: PitchConfig[] = [
     name: "Terrain 7v7",
     capacity: "7 contre 7",
     surface: "Gazon synthétique 4G",
-    description: "Format intermédiaire sur surface 4G certifiée FIFA. Parfait pour ligues compétitives et entraînements d'équipe.",
-    price: 95,
+    description: "Format intermédiaire sur surface 4G certifiée FIFA.",
     image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&q=80",
     features: ["Certifié FIFA", "Gazon 4G", "Tribune", "Analyse vidéo"],
   },
@@ -27,28 +25,23 @@ export const PITCHES: PitchConfig[] = [
     name: "Aréna complet",
     capacity: "11 contre 11",
     surface: "Gazon hybride pro",
-    description: "Notre aréna plein format avec gazon hybride professionnel. Tableau d'affichage numérique, système audio et éclairage compétition.",
-    price: 95,
+    description: "Aréna plein format avec gazon hybride professionnel.",
     image: "https://images.unsplash.com/photo-1529900748604-07564a03e7a6?w=800&q=80",
     features: ["Gazon hybride", "Tableau de scores", "Sono intégrée", "Événements privés"],
   },
 ];
 
-// Pricing table: duration × category
-// Matches the pricing table exactly
-const PRICING: Record<Duration, Record<PriceCategory, number>> = {
+// Pricing: duration (in minutes) → category → price
+// 2 consecutive 30-min slots = 60 min price, etc.
+const PRICING: Record<number, Record<PriceCategory, number>> = {
   30:  { regular: 55,  peak: 65,  weekend: 70  },
   60:  { regular: 95,  peak: 115, weekend: 125 },
   90:  { regular: 130, peak: 155, weekend: 170 },
   120: { regular: 160, peak: 190, weekend: 210 },
 };
 
-export const DURATIONS: { value: Duration; label: string }[] = [
-  { value: 30,  label: "30 min" },
-  { value: 60,  label: "60 min" },
-  { value: 90,  label: "90 min" },
-  { value: 120, label: "120 min" },
-];
+// Max 4 consecutive 30-min slots (120 min)
+export const MAX_SLOTS = 4;
 
 // Peak hours: 17:00–22:00 on weekdays
 const PEAK_START = 17;
@@ -61,8 +54,12 @@ export function getPriceCategory(date: Date, time: string): PriceCategory {
   return "regular";
 }
 
-export function getPrice(duration: Duration, category: PriceCategory): number {
-  return PRICING[duration][category];
+export function getPriceForDuration(durationMinutes: number, category: PriceCategory): number {
+  const entry = PRICING[durationMinutes];
+  if (entry) return entry[category];
+  // Fallback: extrapolate from 30-min rate
+  const blocks = durationMinutes / 30;
+  return PRICING[30][category] * blocks;
 }
 
 export function getCategoryLabel(cat: PriceCategory): string {
@@ -82,6 +79,8 @@ for (let h = 8; h <= 22; h++) {
   }
 }
 
+export { SLOT_TIMES };
+
 function formatTime(t: string): string {
   const [hr, min] = t.split(":");
   const n = parseInt(hr, 10);
@@ -91,38 +90,13 @@ function formatTime(t: string): string {
 export function generateTimeSlots(
   date: Date,
   pitchId: string,
-  duration: Duration,
   bookedSlots: Set<string> = new Set(),
 ): TimeSlot[] {
-  // How many consecutive 30-min blocks needed
-  const blocksNeeded = duration / 30;
-
-  return SLOT_TIMES.map((t) => {
-    const category = getPriceCategory(date, t);
-    const price = getPrice(duration, category);
-
-    // Check if all blocks starting from this slot are available
-    const startIdx = SLOT_TIMES.indexOf(t);
-    let available = true;
-    for (let i = 0; i < blocksNeeded; i++) {
-      const slotTime = SLOT_TIMES[startIdx + i];
-      if (!slotTime || bookedSlots.has(slotTime)) {
-        available = false;
-        break;
-      }
-    }
-    // Also check the booking wouldn't go past 22:30
-    if (startIdx + blocksNeeded > SLOT_TIMES.length) {
-      available = false;
-    }
-
-    return {
-      id: `${pitchId}-${t}`,
-      time: t,
-      label: formatTime(t),
-      available,
-      price,
-      category,
-    };
-  });
+  return SLOT_TIMES.map((t) => ({
+    id: `${pitchId}-${t}`,
+    time: t,
+    label: formatTime(t),
+    available: !bookedSlots.has(t),
+    category: getPriceCategory(date, t),
+  }));
 }
