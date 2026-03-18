@@ -52,6 +52,7 @@ INSERT INTO faq (question, answer, icon, sort_order) VALUES
 -- Bookings table
 CREATE TABLE bookings (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  pitch_id TEXT NOT NULL DEFAULT '5-a-side',
   date DATE NOT NULL,
   time TEXT NOT NULL,
   duration INT NOT NULL DEFAULT 60,
