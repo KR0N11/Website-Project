@@ -1,7 +1,7 @@
 "use client";
 import { useState, useCallback, useMemo, useEffect } from "react";
-import type { BookingState, PitchType, TimeSlot, BookingDetails, PackOption } from "@/types/booking";
-import { PITCHES, generateTimeSlots } from "@/lib/pitches";
+import type { BookingState, PitchType, TimeSlot, BookingDetails, PackOption, Duration } from "@/types/booking";
+import { PITCHES, DURATIONS, generateTimeSlots, getPrice, getPriceCategory, getCategoryLabel } from "@/lib/pitches";
 import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
 
@@ -17,6 +17,7 @@ const INITIAL_STATE: BookingState = {
   selectedSlot: null,
   selectedSlots: [],
   selectedPack: null,
+  selectedDuration: 60,
   playerCount: 10,
   step: 1,
 };
@@ -34,7 +35,7 @@ export function useBooking() {
   const [details, setDetails] = useState<BookingDetails>(INITIAL_DETAILS);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
-  const [bookedHours, setBookedHours] = useState<Set<string>>(new Set());
+  const [bookedSlots, setBookedSlots] = useState<Set<string>>(new Set());
   const [packRequiresApproval, setPackRequiresApproval] = useState(false);
 
   const selectedPitchConfig = useMemo(
@@ -42,12 +43,12 @@ export function useBooking() {
     [state.selectedPitch]
   );
 
-  // Fetch booked hours from Supabase when date/pitch changes
+  // Fetch booked slots from Supabase when date/pitch changes
   useEffect(() => {
     if (!state.selectedDate || !state.selectedPitch) return;
     const dateStr = format(state.selectedDate, "yyyy-MM-dd");
 
-    async function fetchBookedHours() {
+    async function fetchBookedSlots() {
       try {
         const { data } = await supabase
           .from("bookings")
@@ -56,41 +57,46 @@ export function useBooking() {
           .neq("status", "cancelled");
 
         if (data) {
-          setBookedHours(new Set(data.map((b: { time: string }) => b.time)));
+          setBookedSlots(new Set(data.map((b: { time: string }) => b.time)));
         }
       } catch {
-        setBookedHours(new Set());
+        setBookedSlots(new Set());
       }
     }
 
-    fetchBookedHours();
+    fetchBookedSlots();
   }, [state.selectedDate, state.selectedPitch]);
 
   const timeSlots = useMemo(() => {
-    if (!state.selectedDate || !state.selectedPitch || !selectedPitchConfig) return [];
-    return generateTimeSlots(state.selectedDate, state.selectedPitch, selectedPitchConfig.price, bookedHours);
-  }, [state.selectedDate, state.selectedPitch, selectedPitchConfig, bookedHours]);
+    if (!state.selectedDate || !state.selectedPitch) return [];
+    return generateTimeSlots(state.selectedDate, state.selectedPitch, state.selectedDuration, bookedSlots);
+  }, [state.selectedDate, state.selectedPitch, state.selectedDuration, bookedSlots]);
 
-  const totalHours = state.selectedSlots.length || (state.selectedSlot ? 1 : 0);
-
+  // Price is determined by duration + category of selected slot (or first available)
   const totalPrice = useMemo(() => {
-    if (!selectedPitchConfig) return 0;
-    return selectedPitchConfig.price * totalHours;
-  }, [selectedPitchConfig, totalHours]);
+    if (!state.selectedSlot || !state.selectedDate) return 0;
+    return getPrice(state.selectedDuration, state.selectedSlot.category);
+  }, [state.selectedSlot, state.selectedDate, state.selectedDuration]);
 
   const depositAmount = useMemo(() => {
     return Math.round(totalPrice * 0.5);
   }, [totalPrice]);
 
+  // Price category label for display
+  const priceCategory = useMemo(() => {
+    if (!state.selectedSlot) return "";
+    return getCategoryLabel(state.selectedSlot.category);
+  }, [state.selectedSlot]);
+
   const canAdvance = useMemo(() => {
     switch (state.step) {
       case 1: return !!state.selectedPitch;
-      case 2: return !!state.selectedDate && state.selectedSlots.length > 0;
+      case 2: return !!state.selectedDate && !!state.selectedSlot;
       case 3: return !!details.name && !!details.email && !!details.phone;
       case 4: return true;
       default: return false;
     }
-  }, [state.step, state.selectedPitch, state.selectedDate, state.selectedSlots.length, details]);
+  }, [state.step, state.selectedPitch, state.selectedDate, state.selectedSlot, details]);
 
   const selectPitch = useCallback((pitchId: PitchType) => {
     setState((s) => ({ ...s, selectedPitch: pitchId, selectedSlot: null, selectedSlots: [] }));
@@ -100,43 +106,17 @@ export function useBooking() {
     setState((s) => ({ ...s, selectedDate: date, selectedSlot: null, selectedSlots: [] }));
   }, []);
 
-  // Multi-hour selection: only consecutive slots allowed, click to toggle
+  const selectDuration = useCallback((duration: Duration) => {
+    setState((s) => ({ ...s, selectedDuration: duration, selectedSlot: null, selectedSlots: [] }));
+  }, []);
+
+  // Single start-time selection (duration determines the block)
   const selectSlot = useCallback((slot: TimeSlot) => {
     setState((s) => {
-      const slotHr = parseInt(slot.time.split(":")[0], 10);
-
-      // Already selected? Remove only if it's at the edge (first or last)
-      const idx = s.selectedSlots.findIndex((sl) => sl.id === slot.id);
-      if (idx !== -1) {
-        if (s.selectedSlots.length === 1) {
-          return { ...s, selectedSlot: null, selectedSlots: [] };
-        }
-        // Only allow removing from start or end to keep them consecutive
-        if (idx === 0 || idx === s.selectedSlots.length - 1) {
-          const updated = s.selectedSlots.filter((_, i) => i !== idx);
-          return { ...s, selectedSlots: updated, selectedSlot: updated[0] };
-        }
-        return s; // can't remove from middle
+      if (s.selectedSlot?.id === slot.id) {
+        return { ...s, selectedSlot: null, selectedSlots: [] };
       }
-
-      // No slots yet — start fresh
-      if (s.selectedSlots.length === 0) {
-        return { ...s, selectedSlots: [slot], selectedSlot: slot };
-      }
-
-      // Check if this slot is adjacent to current range
-      const sorted = [...s.selectedSlots].sort((a, b) => a.time.localeCompare(b.time));
-      const firstHr = parseInt(sorted[0].time.split(":")[0], 10);
-      const lastHr = parseInt(sorted[sorted.length - 1].time.split(":")[0], 10);
-
-      if (slotHr === lastHr + 1 || slotHr === firstHr - 1) {
-        // Adjacent — add and re-sort
-        const updated = [...s.selectedSlots, slot].sort((a, b) => a.time.localeCompare(b.time));
-        return { ...s, selectedSlots: updated, selectedSlot: updated[0] };
-      }
-
-      // Not adjacent — start new selection with just this slot
-      return { ...s, selectedSlots: [slot], selectedSlot: slot };
+      return { ...s, selectedSlot: slot, selectedSlots: [slot] };
     });
   }, []);
 
@@ -180,37 +160,43 @@ export function useBooking() {
     setPackRequiresApproval(false);
   }, []);
 
+  // Format end time from start time + duration
+  const endTimeLabel = useMemo(() => {
+    if (!state.selectedSlot) return "";
+    const [hr, min] = state.selectedSlot.time.split(":").map(Number);
+    const totalMin = hr * 60 + min + state.selectedDuration;
+    const endHr = Math.floor(totalMin / 60);
+    const endMin = totalMin % 60;
+    return `${endHr}h${String(endMin).padStart(2, "0")}`;
+  }, [state.selectedSlot, state.selectedDuration]);
+
   const submitBooking = useCallback(async () => {
-    if (!selectedPitchConfig || !state.selectedDate || state.selectedSlots.length === 0) return;
+    if (!selectedPitchConfig || !state.selectedDate || !state.selectedSlot) return;
     setIsSubmitting(true);
     try {
       const dateStr = format(state.selectedDate, "yyyy-MM-dd");
       const hasPack = !!state.selectedPack;
-      // If a pack is selected, booking goes to "awaiting_approval" instead of "pending"
       const bookingStatus = hasPack ? "awaiting_approval" : "pending";
 
-      // Insert one booking per selected hour
-      for (const slot of state.selectedSlots) {
-        const { error } = await supabase.from("bookings").insert({
-          date: dateStr,
-          time: slot.time,
-          duration: 60,
-          player_name: details.name,
-          team_name: details.teamName || null,
-          email: details.email,
-          phone: details.phone,
-          players: state.playerCount,
-          price: selectedPitchConfig.price,
-          deposit_paid: hasPack ? 0 : Math.round(selectedPitchConfig.price * 0.5),
-          status: bookingStatus,
-          notes: details.notes
-            ? `${details.notes}${hasPack ? ` | Pack: ${state.selectedPack}` : ""}`
-            : hasPack ? `Pack: ${state.selectedPack}` : null,
-        });
+      const { error } = await supabase.from("bookings").insert({
+        date: dateStr,
+        time: state.selectedSlot.time,
+        duration: state.selectedDuration,
+        player_name: details.name,
+        team_name: details.teamName || null,
+        email: details.email,
+        phone: details.phone,
+        players: state.playerCount,
+        price: totalPrice,
+        deposit_paid: hasPack ? 0 : depositAmount,
+        status: bookingStatus,
+        notes: details.notes
+          ? `${details.notes}${hasPack ? ` | Pack: ${state.selectedPack}` : ""}`
+          : hasPack ? `Pack: ${state.selectedPack}` : null,
+      });
 
-        if (error) {
-          console.error("Booking error:", error);
-        }
+      if (error) {
+        console.error("Booking error:", error);
       }
 
       if (hasPack) {
@@ -223,7 +209,7 @@ export function useBooking() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [selectedPitchConfig, state.selectedDate, state.selectedSlots, state.selectedPack, state.playerCount, details]);
+  }, [selectedPitchConfig, state.selectedDate, state.selectedSlot, state.selectedDuration, state.selectedPack, state.playerCount, details, totalPrice, depositAmount]);
 
   return {
     state,
@@ -234,14 +220,17 @@ export function useBooking() {
     selectedPitchConfig,
     selectedPackConfig,
     timeSlots,
-    totalHours,
     totalPrice,
     depositAmount,
+    priceCategory,
+    endTimeLabel,
     canAdvance,
     pitches: PITCHES,
     packs: PACKS,
+    durations: DURATIONS,
     selectPitch,
     selectDate,
+    selectDuration,
     selectSlot,
     selectPack,
     setPlayerCount,
