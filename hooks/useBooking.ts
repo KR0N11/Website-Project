@@ -268,6 +268,28 @@ export function useBooking() {
         console.error("Booking error:", error);
       }
 
+      // Send email notification
+      fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "new_booking",
+          booking: {
+            player_name: details.name,
+            team_name: details.teamName || null,
+            email: details.email,
+            phone: details.phone,
+            date: dateStr,
+            time: sorted[0].time,
+            duration: totalDuration,
+            players: state.playerCount,
+            price: totalPrice,
+            status: bookingStatus,
+            notes: details.notes || null,
+          },
+        }),
+      }).catch(() => {});
+
       if (hasPack) {
         setPackRequiresApproval(true);
       }

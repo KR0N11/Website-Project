@@ -6,7 +6,7 @@ import { PrismaClient } from "../lib/generated/prisma";
 config({ path: ".env.local" });
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
+const adapter = new PrismaPg(pool as any);
 const prisma = new PrismaClient({ adapter });
 
 type PitchId = "5-a-side" | "7-a-side" | "full-pitch";

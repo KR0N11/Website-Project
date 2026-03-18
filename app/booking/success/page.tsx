@@ -2,9 +2,11 @@ import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2026-02-25.clover",
-});
+function getStripe() {
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: "2026-02-25.clover",
+  });
+}
 
 interface Props {
   searchParams: Promise<{ session_id?: string }>;
@@ -19,6 +21,7 @@ export default async function BookingSuccessPage({ searchParams }: Props) {
 
   if (session_id) {
     try {
+      const stripe = getStripe();
       const session = await stripe.checkout.sessions.retrieve(session_id, {
         expand: ["line_items"],
       });

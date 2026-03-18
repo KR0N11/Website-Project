@@ -131,11 +131,27 @@ function BookingModal({ booking, onClose, onApprove, onReject }: {
   );
 }
 
-const SCHEDULE_TIMES = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00"];
+const SCHEDULE_TIMES: string[] = [];
+for (let h = 8; h <= 22; h++) {
+  SCHEDULE_TIMES.push(`${String(h).padStart(2, "0")}:00`);
+  if (h < 22) SCHEDULE_TIMES.push(`${String(h).padStart(2, "0")}:30`);
+}
+
+function getBookingForSlot(time: string, dayBookings: AdminBooking[]): AdminBooking | undefined {
+  for (const b of dayBookings) {
+    const [bh, bm] = b.time.split(":").map(Number);
+    const bStart = bh * 60 + bm;
+    const bEnd = bStart + (b.duration || 30);
+    const [sh, sm] = time.split(":").map(Number);
+    const slotMin = sh * 60 + sm;
+    if (slotMin >= bStart && slotMin < bEnd) return b;
+  }
+  return undefined;
+}
 
 function ScheduleGrid({ date, bookings, onSelect }: { date: Date; bookings: AdminBooking[]; onSelect: (b: AdminBooking) => void }) {
   const dateStr = format(date, "yyyy-MM-dd");
-  const dayBookings = bookings.filter(b => b.date === dateStr);
+  const dayBookings = bookings.filter(b => b.date === dateStr && b.status !== "cancelled");
 
   return (
     <div className="glass-card overflow-hidden">
@@ -148,7 +164,8 @@ function ScheduleGrid({ date, bookings, onSelect }: { date: Date; bookings: Admi
         </div>
       </div>
       {SCHEDULE_TIMES.map((time, ti) => {
-        const booking = dayBookings.find(b => b.time === time);
+        const booking = getBookingForSlot(time, dayBookings);
+        const isStart = booking?.time === time;
         return (
           <div key={time} className={`grid border-b border-white/[0.04] ${ti % 2 === 0 ? "bg-white/[0.01]" : ""}`}
             style={{ gridTemplateColumns: "80px 1fr" }}>
@@ -160,16 +177,27 @@ function ScheduleGrid({ date, bookings, onSelect }: { date: Date; bookings: Admi
               {booking ? (
                 <button onClick={() => onSelect(booking)}
                   className="w-full rounded-lg px-3 py-2 text-left transition-all hover:opacity-90 group"
-                  style={{ background: "rgba(249,115,22,0.15)", border: "1px solid rgba(249,115,22,0.35)" }}>
-                  <div className="text-xs font-semibold truncate text-[#FB923C]">{booking.player_name}</div>
-                  <div className="text-xs truncate mt-0.5 text-[#FB923C]/70">{booking.team_name ?? "—"}</div>
-                  <div className="flex items-center justify-between mt-1">
-                    <span className="text-[0.6rem] px-1.5 py-0.5 rounded-full"
-                      style={{ background: STATUS_STYLES[booking.status].bg, color: STATUS_STYLES[booking.status].text }}>
-                      {booking.status}
-                    </span>
-                    <Eye size={10} className="text-[#FB923C] opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
+                  style={{
+                    background: booking.status === "awaiting_approval" ? "rgba(168,85,247,0.15)" : "rgba(249,115,22,0.15)",
+                    border: `1px solid ${booking.status === "awaiting_approval" ? "rgba(168,85,247,0.35)" : "rgba(249,115,22,0.35)"}`,
+                  }}>
+                  {isStart ? (
+                    <>
+                      <div className={`text-xs font-semibold truncate ${booking.status === "awaiting_approval" ? "text-purple-300" : "text-[#FB923C]"}`}>{booking.player_name}</div>
+                      <div className={`text-xs truncate mt-0.5 ${booking.status === "awaiting_approval" ? "text-purple-300/70" : "text-[#FB923C]/70"}`}>{booking.team_name ?? "—"} · {booking.duration}min</div>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-[0.6rem] px-1.5 py-0.5 rounded-full"
+                          style={{ background: STATUS_STYLES[booking.status]?.bg, color: STATUS_STYLES[booking.status]?.text }}>
+                          {booking.status === "awaiting_approval" ? "approbation" : booking.status}
+                        </span>
+                        <Eye size={10} className="text-[#FB923C] opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </>
+                  ) : (
+                    <div className={`text-xs truncate ${booking.status === "awaiting_approval" ? "text-purple-300/50" : "text-[#FB923C]/50"}`}>
+                      ↕ {booking.player_name}
+                    </div>
+                  )}
                 </button>
               ) : (
                 <div className="w-full rounded-lg px-3 py-2 border border-white/[0.04] text-center">
@@ -223,12 +251,28 @@ export default function AdminPage() {
 
   const handleApprove = async (id: string) => {
     await supabase.from("bookings").update({ status: "confirmed" }).eq("id", id);
+    const booking = bookings.find((b) => b.id === id);
+    if (booking) {
+      fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "booking_approved", booking }),
+      }).catch(() => {});
+    }
     setBookings((prev) => prev.map((b) => b.id === id ? { ...b, status: "confirmed" } : b));
     setSelected(null);
   };
 
   const handleReject = async (id: string) => {
     await supabase.from("bookings").update({ status: "cancelled" }).eq("id", id);
+    const booking = bookings.find((b) => b.id === id);
+    if (booking) {
+      fetch("/api/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "booking_rejected", booking }),
+      }).catch(() => {});
+    }
     setBookings((prev) => prev.map((b) => b.id === id ? { ...b, status: "cancelled" } : b));
     setSelected(null);
   };

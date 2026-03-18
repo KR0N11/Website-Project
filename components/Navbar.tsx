@@ -69,11 +69,11 @@ export default function Navbar() {
                 <ShieldCheck size={16} />
                 Admin
               </a>
-              <a href="#" className="flex items-center gap-2 text-[#90a8d8] hover:text-white text-sm tracking-[0.08em] uppercase transition-colors duration-200">
+              <a href="/login" className="flex items-center gap-2 text-[#90a8d8] hover:text-white text-sm tracking-[0.08em] uppercase transition-colors duration-200">
                 <LogIn size={16} />
                 Connexion
               </a>
-              <a href="#" className="btn-neon text-sm py-2.5 px-5 flex items-center gap-2">
+              <a href="/signup" className="btn-neon text-sm py-2.5 px-5 flex items-center gap-2">
                 <UserPlus size={16} />
                 S&apos;inscrire
               </a>

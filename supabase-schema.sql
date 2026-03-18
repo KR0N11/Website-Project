@@ -62,7 +62,7 @@ CREATE TABLE bookings (
   players INT NOT NULL DEFAULT 10,
   price INT NOT NULL,
   deposit_paid INT NOT NULL DEFAULT 0,
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('confirmed', 'pending', 'cancelled')),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('confirmed', 'pending', 'cancelled', 'awaiting_approval')),
   notes TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
