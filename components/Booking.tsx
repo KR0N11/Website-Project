@@ -56,6 +56,7 @@ export default function Booking() {
     submitBooking,
   } = useBooking();
 
+  // Entrance animations — only when showing the booking form
   useEffect(() => {
     if (isComplete) return;
     const ctx = gsap.context(() => {
@@ -72,6 +73,13 @@ export default function Booking() {
     }, sectionRef);
     return () => ctx.revert();
   }, [isComplete]);
+
+  // When the view changes (step transitions or form → success), the page height changes.
+  // Recalculate every ScrollTrigger so scrub-based triggers don't freeze scroll.
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => ScrollTrigger.refresh());
+    return () => cancelAnimationFrame(raf);
+  }, [isComplete, state.step]);
 
   if (isComplete) {
     return (
