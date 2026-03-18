@@ -19,10 +19,18 @@ export type PitchConfig = {
   features: string[];
 };
 
+export type PackOption = {
+  id: string;
+  name: string;
+  features: string[];
+  is_popular: boolean;
+};
+
 export type BookingState = {
   selectedDate: Date | null;
   selectedPitch: PitchType | null;
   selectedSlot: TimeSlot | null;
+  selectedPack: string | null;
   playerCount: number;
   step: 1 | 2 | 3 | 4; // 1=pitch, 2=date+time, 3=details, 4=payment
 };

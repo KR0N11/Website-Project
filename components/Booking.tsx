@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import {
+  Check,
   CheckCircle2,
   ChevronRight,
   ChevronLeft,
@@ -31,13 +32,16 @@ export default function Booking() {
     isSubmitting,
     isComplete,
     selectedPitchConfig,
+    selectedPackConfig,
     timeSlots,
     depositAmount,
     canAdvance,
     pitches,
+    packs,
     selectPitch,
     selectDate,
     selectSlot,
+    selectPack,
     updateDetail,
     nextStep,
     prevStep,
@@ -291,6 +295,50 @@ export default function Booking() {
           {/* Step 4: Payment */}
           {state.step === 4 && (
             <div className="max-w-xl mx-auto space-y-6">
+              {/* Pack selection */}
+              <div className="glass-card p-6">
+                <h3 className="text-white text-xl mb-2 tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
+                  AJOUTER UN FORFAIT
+                </h3>
+                <p className="text-[#3d5a90] text-sm mb-5">Optionnel — améliorez votre expérience avec un pack.</p>
+                <div className="grid grid-cols-3 gap-3">
+                  {packs.map((pack) => {
+                    const selected = state.selectedPack === pack.id;
+                    return (
+                      <button key={pack.id} onClick={() => selectPack(pack.id)}
+                        className={`relative text-left p-4 rounded-xl border transition-all duration-300 ${
+                          selected
+                            ? "border-[#F97316]/50 bg-[#F97316]/[0.08] shadow-[0_0_20px_rgba(249,115,22,0.12)]"
+                            : "border-white/10 hover:border-white/20 bg-white/[0.02]"
+                        }`}>
+                        {pack.is_popular && (
+                          <span className="absolute -top-2 right-3 bg-[#F97316] text-[#06080f] text-[0.55rem] px-2 py-0.5 rounded-full font-semibold tracking-wider uppercase"
+                            style={{ fontFamily: "var(--font-display)" }}>
+                            Populaire
+                          </span>
+                        )}
+                        {selected && (
+                          <div className="absolute top-2 left-2 w-5 h-5 rounded-full bg-[#F97316] flex items-center justify-center">
+                            <Check size={12} className="text-[#06080f]" />
+                          </div>
+                        )}
+                        <h4 className="text-white text-sm font-semibold mb-2 tracking-wide uppercase" style={{ fontFamily: "var(--font-display)" }}>
+                          {pack.name}
+                        </h4>
+                        <ul className="space-y-1">
+                          {pack.features.map((f) => (
+                            <li key={f} className="flex items-start gap-1.5">
+                              <Check size={10} className="text-[#F97316] shrink-0 mt-0.5" />
+                              <span className="text-[#6080b8] text-[0.7rem] leading-tight">{f}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="glass-card p-6">
                 <h3 className="text-white text-xl mb-5 tracking-[0.06em]" style={{ fontFamily: "var(--font-display)" }}>
                   RÉSUMÉ DE LA RÉSERVATION
@@ -301,6 +349,7 @@ export default function Booking() {
                     { label: "Date",    value: state.selectedDate ? format(state.selectedDate, "EEE dd MMM yyyy", { locale: fr }) : "—" },
                     { label: "Heure",   value: state.selectedSlot?.label ?? "—" },
                     { label: "Joueur",  value: details.name },
+                    ...(selectedPackConfig ? [{ label: "Forfait", value: selectedPackConfig.name }] : []),
                   ].map(({ label, value }) => (
                     <div key={label} className="flex justify-between">
                       <span className="text-[#3d5a90]">{label}</span>

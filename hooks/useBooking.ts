@@ -1,14 +1,21 @@
 "use client";
 import { useState, useCallback, useMemo, useEffect } from "react";
-import type { BookingState, PitchType, TimeSlot, BookingDetails } from "@/types/booking";
+import type { BookingState, PitchType, TimeSlot, BookingDetails, PackOption } from "@/types/booking";
 import { PITCHES, generateTimeSlots } from "@/lib/pitches";
 import { supabase } from "@/lib/supabase";
 import { format } from "date-fns";
+
+const PACKS: PackOption[] = [
+  { id: "pack-fete", name: "Pack Fête", features: ["90 min de jeu sur terrain", "Salle privée avec collations", "Console PS5 & FIFA incluse", "Breuvages et gâteau offerts"], is_popular: false },
+  { id: "pack-entreprise", name: "Pack Entreprise", features: ["2h de terrain réservé", "Arbitre certifié inclus", "Salon VIP & vestiaires privés", "Facturation corporative disponible"], is_popular: true },
+  { id: "pack-tournoi", name: "Pack Tournoi", features: ["Créneaux multi-terrains flexibles", "Gestion complète des tableaux", "Arbitrage professionnel", "Trophées et prix remis sur place"], is_popular: false },
+];
 
 const INITIAL_STATE: BookingState = {
   selectedDate: null,
   selectedPitch: null,
   selectedSlot: null,
+  selectedPack: null,
   playerCount: 10,
   step: 1,
 };
@@ -89,6 +96,15 @@ export function useBooking() {
     setState((s) => ({ ...s, selectedSlot: slot }));
   }, []);
 
+  const selectPack = useCallback((packId: string | null) => {
+    setState((s) => ({ ...s, selectedPack: s.selectedPack === packId ? null : packId }));
+  }, []);
+
+  const selectedPackConfig = useMemo(
+    () => PACKS.find((p) => p.id === state.selectedPack) ?? null,
+    [state.selectedPack]
+  );
+
   const setPlayerCount = useCallback((n: number) => {
     setState((s) => ({ ...s, playerCount: n }));
   }, []);
@@ -157,13 +173,16 @@ export function useBooking() {
     isSubmitting,
     isComplete,
     selectedPitchConfig,
+    selectedPackConfig,
     timeSlots,
     depositAmount,
     canAdvance,
     pitches: PITCHES,
+    packs: PACKS,
     selectPitch,
     selectDate,
     selectSlot,
+    selectPack,
     setPlayerCount,
     updateDetail,
     nextStep,
