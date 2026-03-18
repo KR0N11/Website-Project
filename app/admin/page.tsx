@@ -37,8 +37,9 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; icon: typeof Che
 };
 
 function formatTime(t: string) {
-  const n = parseInt(t.split(":")[0], 10);
-  return `${n}h00`;
+  const [hr, min] = t.split(":");
+  const n = parseInt(hr, 10);
+  return `${n}h${min}`;
 }
 
 function totalRevenue(bookings: AdminBooking[]) {
@@ -195,25 +196,29 @@ export default function AdminPage() {
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
   const [loading, setLoading]   = useState(true);
 
-  // Fetch bookings from Supabase, fall back to demo data
+  // Fetch bookings from Supabase
+  async function fetchBookings(showLoading = true) {
+    if (showLoading) setLoading(true);
+    try {
+      const { data } = await supabase
+        .from("bookings")
+        .select("*")
+        .order("date")
+        .order("time");
+      setBookings(data?.length ? (data as AdminBooking[]) : []);
+    } catch {
+      setBookings([]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Initial fetch + auto-refresh every 15s for new bookings
   useEffect(() => {
     if (!authed) return;
-    async function fetchBookings() {
-      setLoading(true);
-      try {
-        const { data } = await supabase
-          .from("bookings")
-          .select("*")
-          .order("date")
-          .order("time");
-        setBookings(data?.length ? (data as AdminBooking[]) : []);
-      } catch {
-        setBookings([]);
-      } finally {
-        setLoading(false);
-      }
-    }
     fetchBookings();
+    const interval = setInterval(() => fetchBookings(false), 15000);
+    return () => clearInterval(interval);
   }, [authed]);
 
   const handleApprove = async (id: string) => {
@@ -230,6 +235,8 @@ export default function AdminPage() {
 
   const confirmed  = bookings.filter(b => b.status === "confirmed");
   const pending    = bookings.filter(b => b.status === "pending" || b.status === "awaiting_approval");
+  const awaitingApproval = bookings.filter(b => b.status === "awaiting_approval");
+  const pendingOnly = bookings.filter(b => b.status === "pending");
   const revenue    = totalRevenue(bookings);
   const todayStr   = format(new Date(), "yyyy-MM-dd");
   const todayCount = bookings.filter(b => b.date === todayStr && b.status !== "cancelled").length;
@@ -323,6 +330,81 @@ export default function AdminPage() {
                 </div>
               ))}
             </div>
+
+            {/* Notification banners */}
+            {awaitingApproval.length > 0 && (
+              <div className="mb-6 rounded-xl border border-purple-500/30 bg-purple-500/[0.08] px-5 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center shrink-0">
+                      <Clock size={18} className="text-purple-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-purple-300 text-sm font-semibold">
+                        {awaitingApproval.length} réservation{awaitingApproval.length > 1 ? "s" : ""} en attente d&apos;approbation
+                      </h3>
+                      <p className="text-purple-400/60 text-xs mt-0.5">
+                        Forfaits nécessitant votre approbation avant confirmation
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => { setView("list"); setStatusFilter("awaiting_approval"); }}
+                    className="shrink-0 px-4 py-2 rounded-lg bg-purple-500/20 border border-purple-500/40 text-purple-300 text-xs font-semibold hover:bg-purple-500/30 transition-all"
+                  >
+                    Voir les demandes
+                  </button>
+                </div>
+                <div className="mt-3 space-y-2">
+                  {awaitingApproval.slice(0, 3).map((b) => (
+                    <button key={b.id} onClick={() => setSelected(b)}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-white/[0.03] hover:bg-white/[0.06] transition-all text-left">
+                      <div className="flex items-center gap-3">
+                        <span className="text-white text-sm font-medium">{b.player_name}</span>
+                        <span className="text-purple-400/60 text-xs">{b.team_name ?? ""}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-purple-300 text-xs" style={{ fontFamily: "var(--font-mono)" }}>
+                          {format(parseISO(b.date), "dd MMM", { locale: fr })} · {formatTime(b.time)}
+                        </span>
+                        <span className="text-white text-xs font-semibold">{b.price}$</span>
+                      </div>
+                    </button>
+                  ))}
+                  {awaitingApproval.length > 3 && (
+                    <p className="text-purple-400/50 text-xs text-center pt-1">
+                      +{awaitingApproval.length - 3} autres demandes
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {pendingOnly.length > 0 && (
+              <div className="mb-6 rounded-xl border border-[#FBBF24]/30 bg-[#FBBF24]/[0.06] px-5 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#FBBF24]/15 border border-[#FBBF24]/30 flex items-center justify-center shrink-0">
+                      <Clock size={18} className="text-[#FBBF24]" />
+                    </div>
+                    <div>
+                      <h3 className="text-[#FBBF24] text-sm font-semibold">
+                        {pendingOnly.length} réservation{pendingOnly.length > 1 ? "s" : ""} en attente de paiement
+                      </h3>
+                      <p className="text-[#FBBF24]/50 text-xs mt-0.5">
+                        Dépôts en cours de traitement
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => { setView("list"); setStatusFilter("pending"); }}
+                    className="shrink-0 px-4 py-2 rounded-lg bg-[#FBBF24]/15 border border-[#FBBF24]/30 text-[#FBBF24] text-xs font-semibold hover:bg-[#FBBF24]/25 transition-all"
+                  >
+                    Voir
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* View toggle */}
             <div className="flex items-center justify-between mb-6">
@@ -440,10 +522,26 @@ export default function AdminPage() {
                         </span>
                         <span className="text-[#F97316] font-semibold text-sm">{b.deposit_paid}$</span>
                         <span className="text-white text-sm">{b.price}$</span>
-                        <button onClick={(e) => { e.stopPropagation(); setSelected(b); }}
-                          className="flex items-center gap-1 text-[#3d5a90] hover:text-white text-xs transition-colors">
-                          <Eye size={13} /> Voir
-                        </button>
+                        <div className="flex items-center gap-1.5">
+                          {b.status === "awaiting_approval" && (
+                            <>
+                              <button onClick={(e) => { e.stopPropagation(); handleApprove(b.id); }}
+                                className="w-7 h-7 rounded-md flex items-center justify-center bg-green-500/15 border border-green-500/30 text-green-400 hover:bg-green-500/30 transition-all"
+                                title="Approuver">
+                                <CheckCircle2 size={13} />
+                              </button>
+                              <button onClick={(e) => { e.stopPropagation(); handleReject(b.id); }}
+                                className="w-7 h-7 rounded-md flex items-center justify-center bg-red-500/15 border border-red-500/30 text-red-400 hover:bg-red-500/30 transition-all"
+                                title="Refuser">
+                                <XCircle size={13} />
+                              </button>
+                            </>
+                          )}
+                          <button onClick={(e) => { e.stopPropagation(); setSelected(b); }}
+                            className="flex items-center gap-1 text-[#3d5a90] hover:text-white text-xs transition-colors">
+                            <Eye size={13} />
+                          </button>
+                        </div>
                       </div>
                     );
                   })}

@@ -30,7 +30,7 @@ export default function Footer() {
               {[
                 { icon: MapPin, text: "Montréal, QC" },
                 { icon: Phone,  text: "+1 (514) 555-0192" },
-                { icon: Mail,   text: "info@mtlwcup.ca" },
+                { icon: Mail,   text: "mtlworldcup@gmail.com" },
               ].map(({ icon: Icon, text }) => (
                 <div key={text} className="flex items-start gap-3">
                   <Icon size={14} className="text-[#F97316] mt-0.5 shrink-0" />

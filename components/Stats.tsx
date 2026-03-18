@@ -52,7 +52,7 @@ export default function Stats() {
                 <Calendar size={20} />
                 Réserver maintenant
               </a>
-              <a href="mailto:info@mtlwcup.ca" className="btn-ghost text-base">Nous contacter</a>
+              <a href="mailto:mtlworldcup@gmail.com" className="btn-ghost text-base">Nous contacter</a>
             </div>
           </div>
         </div>
