@@ -1,11 +1,13 @@
 import { config } from "dotenv";
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../lib/generated/prisma";
 
 config({ path: ".env.local" });
 
-const prisma = new PrismaClient({
-  datasourceUrl: process.env.DATABASE_URL,
-});
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+const prisma = new PrismaClient({ adapter });
 
 type PitchId = "5-a-side" | "7-a-side" | "full-pitch";
 
