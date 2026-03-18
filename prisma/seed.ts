@@ -1,7 +1,11 @@
-import "dotenv/config";
+import { config } from "dotenv";
 import { PrismaClient } from "../lib/generated/prisma";
 
-const prisma = new PrismaClient();
+config({ path: ".env.local" });
+
+const prisma = new PrismaClient({
+  datasourceUrl: process.env.DATABASE_URL,
+});
 
 type PitchId = "5-a-side" | "7-a-side" | "full-pitch";
 
